@@ -1,5 +1,5 @@
 # oneSolver
-Created by hperQ - Ewa Hendzel
+Created by quantumz.io
 
 ## Build instructions
 
