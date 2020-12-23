@@ -1,0 +1,73 @@
+
+__copyright__ = "hyperQ – Ewa Hendzel"
+__license__ = "MIT"
+__version__ = "0.1.0"
+__status__ = "Dev"
+
+# How many instances to solve for each size
+NUM_FILES_PER_CHIMERA_SIZE = 1
+
+# Available Chimera sizes
+CHIMERA_SIZES = [128, 512, 2048]
+
+# The annealing time
+NUM_ITERATIONS = range(100, 1100, 100)
+
+# How many times to repeat
+NUM_TRIES = range(10, 500, 50)
+
+# OneSolver's parameters (inverse Boltzmann temperature and its schedule)
+BETA_MAX = 10
+BETA_MIN = [0.1, 0.3, 0.5, 0.7, 0.9, 1.1]
+SCHEDULES = ["linear", "geometric"]
+
+rule benchmark_all:
+    input:
+          expand(
+              "benchmarks/{size}/{num:03}.csv",
+              size=CHIMERA_SIZES,
+              num=range(1, NUM_FILES_PER_CHIMERA_SIZE+1)
+          )
+
+rule convert_input_to_qbsolv:
+    input:
+          "chimera_droplets/{size}power/{num}.txt"
+    output:
+          "chimera_droplets_qbsolv/{size}power/{num}.txt"
+    shell:
+          "python scripts/convert_qbsolv_to_coo.py {input} {output}"
+
+rule merge:
+    input:
+          expand(
+              "tmp/benchmark_{{size}}_{{num}}_betamin{beta_min}_num_iter{num_iter}_num_tries{num_tries}_schedule{schedule}.csv",
+              beta_min=BETA_MIN,
+              num_iter=NUM_ITERATIONS,
+              num_tries=NUM_TRIES,
+              schedule=SCHEDULES
+          )
+    output:
+          "benchmarks/{size}/{num}.csv"
+    run:
+        import pandas as pd
+
+        merged = pd.concat([pd.read_csv(input_file) for input_file in input])
+        merged.to_csv(output[0], index=False)
+
+rule compute:
+    input:
+         "chimera_droplets_qbsolv/{size}power/{num}.txt"
+    output:
+           temp("tmp/benchmark_{size}_{num}_betamin{beta_min}_num_iter{num_iter}_num_tries{num_tries}_schedule{schedule}.csv")
+    shell:
+         """
+         ../build/app/one-solver-anneal           \
+             --input {input}                      \
+             --output {output}                    \
+            --num-iter {wildcards.num_iter}       \
+            --num-tries {wildcards.num_tries}     \
+            --schedule-type {wildcards.schedule}  \
+             --beta-max {BETA_MAX}
+         sed -i '1 s|$|,beta_min,num_iter,num_tries,schedule|' {output}
+         sed -i '$s/$/,{wildcards.beta_min},{wildcards.num_iter},{wildcards.num_tries},{wildcards.schedule}/' {output}
+         """

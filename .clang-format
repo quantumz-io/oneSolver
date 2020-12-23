@@ -1,0 +1,3 @@
+# Use Clang-Format, docunentation:
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: LLVM

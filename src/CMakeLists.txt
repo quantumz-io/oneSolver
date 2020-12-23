@@ -1,0 +1,26 @@
+set(LIBRARY_NAME "${PROJECT_NAME}")
+set(APP_NAME "one-solver")
+set(LIBRARY_MODULE_PATH  "${PROJECT_SOURCE_DIR}/src")
+set(LIBRARY_SRC_PATH     "${LIBRARY_MODULE_PATH}")
+set(LIBRARY_INCLUDE_PATH "${PROJECT_SOURCE_DIR}/include")
+set(LIBRARY_PRIVATE_INCLUDE_PATH "${LIBRARY_MODULE_PATH}")
+
+#set(LIB_SOURCE_FILES "${LIBRARY_SRC_PATH}/energy.cpp")
+set(APP_SOURCE_FILES "${LIBRARY_SRC_PATH}/one_solver.cpp")
+
+#add_library(${LIBRARY_NAME} ${LIB_SOURCE_FILES})
+
+#target_include_directories(${LIBRARY_NAME}
+#    PUBLIC
+#        $<INSTALL_INTERFACE:include>
+#        $<BUILD_INTERFACE:${LIBRARY_INCLUDE_PATH}>
+#    PRIVATE
+#        ${LIBRARY_MODULE_PATH}
+#)
+
+#target_compile_features(${LIBRARY_NAME} PRIVATE cxx_std_17)
+
+add_executable(${APP_NAME} ${APP_SOURCE_FILES})
+target_include_directories(${APP_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/include")
+
+set(LIBRARY_NAME ${LIBRARY_NAME} PARENT_SCOPE)
