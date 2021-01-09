@@ -1,0 +1,25 @@
+image: intel/oneapi-hpckit:latest
+
+stages:
+  - build
+  - test
+
+onesolver-build:
+  stage: build
+  tags:
+    - oneapi
+  script:
+    - mkdir build
+    - cd build
+    - cmake ..
+    - cmake --build .
+
+onesolver-test:
+  stage: test
+  tags:
+    - oneapi
+  script:
+    - cd build/test
+    - ./mai-test
+  dependencies:
+    - onesolver-build
