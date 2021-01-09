@@ -11,7 +11,7 @@ cmake --build .
 
 ## Running the  applications
 Binaries are ``one-solver-anneal`` and ``one-solver-exhaustive`` created
-in the app folder. Binary for tests is located in ``tests``.
+in the `src` folder. Binary for tests is located in ``tests``.
 
 The binary named `one-solver-anneal` allows to solve a QUBO problem using
 the simulated annealing algorithm whereas `one-solver-exhaustive` uses
@@ -52,7 +52,7 @@ Allowed options:
 The following applications call
 
 ```
-./one-solver-exhaustive --input ../../examples/test1.qubo --output result1.qubo
+./one-solver-exhaustive --input ../../benchmarks/exhaustive_search/examples/csp13.qubo --output csp13.csv
 ```
 
 executes the program for the model described in ``test1.qubo`` file and 
