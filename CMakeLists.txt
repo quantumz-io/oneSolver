@@ -13,5 +13,5 @@ set(CMAKE_CXX_FLAGS "-fsycl")
 
 find_package(Boost 1.71)
 
-add_subdirectory(app)
+add_subdirectory(src)
 add_subdirectory(tests)
