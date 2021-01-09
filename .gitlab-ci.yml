@@ -8,6 +8,8 @@ onesolver-build:
   stage: build
   tags:
     - oneapi
+  before_script:
+    - apt-get install -y libboost-all-dev > /dev/null
   script:
     - mkdir build
     - cd build
