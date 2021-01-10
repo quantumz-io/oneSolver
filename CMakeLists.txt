@@ -11,7 +11,7 @@ set(CMAKE_CXX_COMPILER clang++)
 
 set(CMAKE_CXX_FLAGS "-fsycl")
 
-find_package(Boost 1.71)
+find_package(Boost 1.65)
 
 add_subdirectory(src)
 add_subdirectory(tests)
