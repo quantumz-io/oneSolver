@@ -3,6 +3,7 @@ image: intel/oneapi-hpckit:latest
 stages:
   - build
   - test
+  - profile
 
 onesolver-build:
   stage: build
@@ -15,13 +16,35 @@ onesolver-build:
     - cd build
     - cmake ..
     - cmake --build .
+  artifacts:
+    paths:
+      - ./build/src/one-solver-anneal
+      - ./build/src/one-solver-exhaustive
+      - ./build/tests/main-test
 
 onesolver-test:
   stage: test
   tags:
     - oneapi
+  before_script:
+    - apt-get install -y libboost-all-dev > /dev/null
   script:
-    - cd build/test
-    - ./mai-test
+    - ./build/tests/main-test
+  dependencies:
+    - onesolver-build
+
+onesolver-benchmark:
+  stage: profile
+  tags:
+    - oneapi
+  before_script:
+    - apt-get install -y libboost-all-dev > /dev/null
+  script:
+    - cd ./benchmarks/exhaustive_search
+    - for i in `seq 18 25`; do ../../build/src/one-solver-exhaustive --input examples/mvp$i.qubo --output ret$i.cpu.csv --device=cpu | tee -a results.txt ; done
+    - for i in `seq 18 21`; do ../../build/src/one-solver-exhaustive --input examples/mvp$i.qubo --output ret$i.gpu.csv --device=gpu | tee -a results.txt ; done
+  artifacts:
+    paths:
+      - ./benchmarks/exhaustive_search/results.txt
   dependencies:
     - onesolver-build

@@ -1,4 +1,4 @@
-find_package(Boost 1.71 COMPONENTS program_options REQUIRED)
+find_package(Boost 1.65 COMPONENTS program_options REQUIRED)
 
 set(MODULE_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
 set(SOURCE_DIRECTORY "${MODULE_DIRECTORY}")

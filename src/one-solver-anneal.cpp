@@ -7,6 +7,7 @@
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <iostream>
+#include <ctime>
 
 #include "CL/sycl.hpp"
 #include "helpers/devices.hpp"
@@ -39,6 +40,7 @@ void construct_geometric_beta_schedule(std::vector<double> &schedule,
 }
 
 int main(int argc, char *argv[]) {
+  const clock_t begin_time = clock();
 
   std::string input_file;
   std::string output_file;
@@ -175,5 +177,6 @@ int main(int argc, char *argv[]) {
     std::cerr << "Exception of unknown type!\n";
   }
 
+  std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
   return 0;
 }

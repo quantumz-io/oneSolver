@@ -61,7 +61,7 @@ rule compute:
            temp("tmp/benchmark_{size}_{num}_betamin{beta_min}_num_iter{num_iter}_num_tries{num_tries}_schedule{schedule}.csv")
     shell:
          """
-         ../build/app/one-solver-anneal           \
+         ../build/src/one-solver-anneal           \
              --input {input}                      \
              --output {output}                    \
             --num-iter {wildcards.num_iter}       \
