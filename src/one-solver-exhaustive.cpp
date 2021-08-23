@@ -111,5 +111,6 @@ int main(int argc, char *argv[]) {
   }
 
   std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
+  MPI_Finalize();
   return 0;
 }
