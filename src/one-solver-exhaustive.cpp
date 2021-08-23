@@ -72,6 +72,12 @@ int main(int argc, char *argv[]) {
       std::cerr << "can not open input file: " << input_file << std::endl;
       return -1;
     }
+    
+    // Start MPI.
+    if (MPI_Init(&argc, &argv) != MPI_SUCCESS) {
+      std::cout << "Failed to initialize MPI\n";
+      exit(-1);
+      }
 
     qubo_file.unsetf(std::ios::skipws);
     auto instance = qubo::QUBOModel<int, double>::load(qubo_file);
