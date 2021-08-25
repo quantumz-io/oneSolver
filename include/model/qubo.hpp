@@ -13,6 +13,9 @@
 #include <boost/bind.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 #include <iostream>
 
 namespace qi = boost::spirit::qi;
@@ -67,6 +70,12 @@ protected:
    * 
    */
   ulong num_nodes = 0;
+  
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive &ar, const unsigned version){
+    ar &linear &quadratic &num_nodes;
+  }
 
 public:
   /**
