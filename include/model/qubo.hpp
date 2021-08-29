@@ -10,13 +10,16 @@
 #include <string>
 #include <unordered_map>
 
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/unordered_set.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 #include <boost/bind.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <iostream>
+
 
 namespace qi = boost::spirit::qi;
 
@@ -54,7 +57,17 @@ using QuadraticCoef = std::unordered_map<std::pair<NodeType, NodeType>,
  * @tparam CoefType real type used to store values of the QUBO model.
  */
 template <class NodeType, class CoefType> class QUBOModel {
-protected:
+private:
+
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & linear;
+    ar & quadratic;
+    ar & num_nodes;
+  }
+
  /**
   * @brief QUBO model linear coefficients store.
   * 
@@ -71,12 +84,6 @@ protected:
    */
   ulong num_nodes = 0;
   
-  friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive &ar, const unsigned version){
-    ar &linear &quadratic &num_nodes;
-  }
-
 public:
   /**
    * @brief Construct a new QUBOModel object.
@@ -84,6 +91,7 @@ public:
    * @param c_linear Linear coefficients of the QUBO model.
    * @param c_quadratic Quadratic coefficients of the QUBO model.
    */
+  QUBOModel() {};
   QUBOModel(LinearCoef<NodeType, CoefType> &c_linear,
             QuadraticCoef<NodeType, CoefType> &c_quadratic);
   
