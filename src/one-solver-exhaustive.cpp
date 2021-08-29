@@ -61,12 +61,17 @@ int main(int argc, char *argv[]) {
   int num_procs=0;
   int size=0;
   int count =0;
+  long long int msg_size =0;
 
   std::string input_file;
   std::string output_file;
   std::string device_type;
+  std::vector<char> msg_buff;
 
-  MPI::Status msgStatus;
+  MPI::Status msg_status;
+
+  qubo::QUBOModel<int, double> instance;
+  
 
   try {
 
@@ -88,7 +93,7 @@ int main(int argc, char *argv[]) {
     // Get the machine name.
     MPI_Get_processor_name(machine_name, &name_len);
 
-    std::cout << "Rank #" << rank << " runs on: " << machine_name;
+    //std::cout << "Rank #" << rank << " runs on: " << machine_name;
               // << ", uses device: "
               // << myQueue.get_device().get_info<info::device::name>() << "\n";
 
@@ -142,102 +147,97 @@ int main(int argc, char *argv[]) {
       }
 
       qubo_file.unsetf(std::ios::skipws);
-      auto instance = qubo::QUBOModel<int, double>::load(qubo_file);
-
-      MPI::COMM_WORLD.Send(device_type.c_str(),
-                           device_type.size(),
-                           MPI::Datatype(MPI::CHAR),
-                           1,
-                           1);
-
-      // MPI::COMM_WORLD.Bcast((void*)device_type.c_str(),
-      //                      device_type.size(),
-      //                      MPI::Datatype(MPI::CHAR),
-      //                      rank);
-
-      //std::cout << "tSize: " << device_type.size() << "\n";
-      std::cout << "device_type: " << device_type.c_str() << "\n";
+      instance = qubo::QUBOModel<int, double>::load(qubo_file);
 
       std::ostringstream oss;
-      
       // save data to archive
       {
-          boost::archive::text_oarchive ar(oss);
-          // write class instance to archive
-          ar << instance;
-    	  // archive and stream closed when destructors are called
+         boost::archive::text_oarchive ar(oss);
+         // write class instance to archive
+         ar << instance;
+         // archive and stream closed when destructors are called
       }
 
-      //std::cout << "tSize: " << oss.str().size() << "\n";
-      //std::cout << "tData: " << oss.str().c_str() << "\n";
+      //std::cout << "sSize: " << oss.str().size() << std::endl;
+      //std::cout << "sData: " << oss.str().c_str() << std::endl;
 
-
-      //MPI_Send(stream.str().c_str(), stream.str().size(), MPI_BYTE, 0, 1, MPI_COMM_WORLD);
-
-
-      MPI::COMM_WORLD.Send(oss.str().c_str(),
-                           oss.str().size(),
-                           MPI::Datatype(MPI_BYTE),
-                           1,
-                           1);
-
-      auto solution = sycl_native(instance, device_type);
-
-      std::ofstream results_file(output_file);
-
-      solution.save(results_file);
-
-      results_file.close();
-
+      msg_buff.assign(oss.str().c_str(), oss.str().c_str() + oss.str().size() +1);
+      msg_size = oss.str().size();
     }
-    else{
 
-       std::vector<char> incomingBuffer(MAX_BUFFER_SIZE);
-       
-       MPI::COMM_WORLD.Recv(&incomingBuffer[0], incomingBuffer.size(),
-                            MPI::Datatype(MPI::CHAR),
-                            0,
-                            1, msgStatus);
-       count = msgStatus.Get_count(MPI::Datatype(MPI_CHAR));
-       if (count > 0)
+    MPI::COMM_WORLD.Bcast(&msg_size,
+                         1,
+                         MPI::LONG_LONG_INT,
+                         0);
+  
+    if(rank != 0){
+      msg_buff.resize(msg_size);
+    }
+
+    MPI::COMM_WORLD.Bcast(msg_buff.data(),
+                         msg_size,
+                         MPI::Datatype(MPI::CHAR),
+                         0);
+    
+    if(rank != 0){
+      if (msg_buff.size() > 0) {
+      std::istringstream iss(std::string(msg_buff.data(), msg_buff.size()));
+      //std::cout << "rSize: " << iss.str().size() << std::endl;
+      //std::cout << "rData: " << iss.str().c_str() << std::endl;
+
        {
-         device_type = std::string(&incomingBuffer[0], count);
+         boost::archive::text_iarchive ar(iss);   
+         ar >> instance;
        }
-       
-       MPI::COMM_WORLD.Recv(&incomingBuffer[0], incomingBuffer.size(),
-                            MPI::Datatype(MPI_BYTE),
-                            0,
-                            1, msgStatus);
-
-       incomingBuffer.resize(msgStatus.Get_count(MPI::Datatype(MPI_BYTE)));
-
-       if (incomingBuffer.size() > 0) {
-         std::istringstream iss(std::string(&incomingBuffer[0], incomingBuffer.size()));
-         //std::cout << "rSize: " << iss.str().size() << std::endl;
-         //std::cout << "rData: " << iss.str().c_str() << std::endl;
-         
-         qubo::QUBOModel<int, double> instance;
-         {
-           boost::archive::text_iarchive ar(iss);   
-           ar >> instance;
-         }
-    
-        auto solution = sycl_native(instance, device_type);
-
-       }
-
-      
+        //auto solution = sycl_native(instance, device_type);
+     }
     }
-    
 
+    if(rank == 0){
+      msg_size = device_type.size();
+      msg_buff.assign(device_type.c_str(),device_type.c_str() + device_type.size() +1);
+    }
+  
+    MPI::COMM_WORLD.Bcast(&msg_size,
+                         1,
+                         MPI::LONG_LONG_INT,
+                         0);
+
+    if(rank != 0){
+      msg_buff.resize(msg_size);
+    }
+  
+    MPI::COMM_WORLD.Bcast(msg_buff.data(),
+                         msg_size,
+                         MPI::Datatype(MPI::CHAR),
+                         0);
+
+    if(rank != 0){
+      device_type = std::string(&msg_buff[0], msg_size);
+      //std::cout << "device_type: " << device_type << std::endl;
+    }
+
+    auto solution = sycl_native(instance, device_type);
+
+    std::cout << "Solution: " << solution.energy << std::endl;
+
+    if(rank == 0){
+      std::ofstream results_file(output_file);
+      solution.save(results_file);
+      results_file.close();
+    }
+
+    
   } catch (std::exception &e) {
     std::cerr << "error: " << e.what() << "\n";
     return 1;
   } catch (...) {
     std::cerr << "Exception of unknown type!\n";
   }
-
-  std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
+  if(rank == 0){
+    std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
+  }
+  
   MPI_Finalize();
   return 0;
 }
