@@ -11,6 +11,8 @@
 #include "model/qubo.hpp"
 #include "model/solution.hpp"
 
+
+
 namespace exhaustive {
 namespace sycl = cl::sycl;
 
@@ -28,7 +30,7 @@ namespace sycl = cl::sycl;
 
 template <class NodeType, class CoefType>
 qubo::Solution solve(sycl::queue &q,
-                     qubo::QUBOModel<NodeType, CoefType> &qubos) {
+                     qubo::QUBOModel<NodeType, CoefType> &qubos, ulong start_state, ulong end_state) {
 
   auto wg_size =
       q.get_device().get_info<sycl::info::device::max_work_group_size>();
@@ -64,12 +66,14 @@ qubo::Solution solve(sycl::queue &q,
     sycl::buffer<ulong, 2> ranges_buf(sycl::range<2>(num_threads, 2));
 
     // note that all the variables related to states have to be unsigned 64 bit integers
-    ulong n_states = 1 << n_bits; 
+    //ulong n_states = 1 << n_bits; 
+    ulong n_states = end_state - start_state;
     ulong states_per_thread = n_states / num_threads;
     ulong states_per_thread_reminder = n_states % num_threads;
 
     ulong reminder_count = 0;
-    ulong states_count = 0;
+    //ulong states_count = 0;
+    ulong states_count = start_state;
 
     for (auto i = 0; i < num_threads; ++i) {
       ulong state_start = states_count;
@@ -146,7 +150,7 @@ qubo::Solution solve(sycl::queue &q,
     for (auto i = 0; i < state_buf.get_count(); ++i) {
 #ifdef DEBUG
       std::cout << i << ", ";
-      for (auto &bit : helpers::ulong_to_vec(state_buf.get_host_access()[i])) {
+      for (auto &bit : helpers::ulong_to_vec(state_buf.get_host_access()[i], n_bits)) {
         std::cout << (int)bit << " ";
       }
       std::cout << std::endl;
@@ -164,6 +168,13 @@ qubo::Solution solve(sycl::queue &q,
   auto result = helpers::ulong_to_vec(states[min_idx_energy], n_bits);
 
   return qubo::Solution(result.begin(), result.end(), energies[min_idx_energy]);
+  // if(start_state > 3)
+  // {
+  //   return qubo::Solution(result.begin(), result.end(), -37);
+  // } else {
+  //   return qubo::Solution(result.begin(), result.end(), energies[min_idx_energy]);
+  // }
+
 }
 
 }; // namespace exhaustive
