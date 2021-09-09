@@ -1,160 +1,182 @@
-/*! file exhaustive_test.cpp
+/*! file exhaustive.hpp
  *
  * @copyright Licensed under MIT license by hyperQ – Ewa Hendzel
  *
  */
-#include <boost/test/data/test_case.hpp>
-#include <boost/test/unit_test.hpp>
+#ifndef EXHAUSTIVE_CALCULATION_HPP__
+#define EXHAUSTIVE_CALCULATION_HPP__
 
-#include "exhaustive/exhaustive.hpp"
+#include "CL/sycl.hpp"
+#include "helpers/ulong_to_vec.hpp"
 #include "model/qubo.hpp"
+#include "model/solution.hpp"
 
-const std::pair<std::string, double> qubo_file_contents[]{
-    std::make_pair<std::string, double>(
-        "c qubo Target MaxNodes NumNodes NumLinks\n"
-        "p qubo 0 4 4 6\n"
-        "c comment\n"
-        "0 0 -5\n"
-        "0 1 2\n"
-        "0 2 4\n"
-        "0 3 0\n"
-        "1 1 -3\n"
-        "1 2 1\n"
-        "1 3 0\n"
-        "2 2 -8\n"
-        "2 3 5\n"
-        "3 3 -6\n",
-        -12.0),
-    std::make_pair<std::string, double>(
-        "c qubo Target MaxNodes NumNodes NumLinks\n"
-        "p qubo 0 3 3 1\n"
-        "c comment\n"
-        "0 0 -0.5\n"
-        "1 1 -0.5\n"
-        "1 2 4\n"
-        "2 2 -0.7\n",
-        -1.2),
-    std::make_pair<std::string, double>(
-        "c qubo Target MaxNodes NumNodes NumLinks\n"
-        "p qubo 0 5 5 10\n"
-        "0 0 -6.000000\n"
-        "0 1 -4.000000\n"
-        "0 2 12.000000\n"
-        "0 3 16.000000\n"
-        "0 4 -12.000000\n"
-        "1 1 12.000000\n"
-        "1 2 -8.000000\n"
-        "1 3 -20.000000\n"
-        "1 4 8.000000\n"
-        "2 2 -8.000000\n"
-        "2 3 4.000000\n"
-        "2 4 8.000000\n"
-        "3 3 -2.000000\n"
-        "3 4 4.000000\n"
-        "4 4 -4.000000\n",
-        -22.0),
-    std::make_pair<std::string, double>(
-        "c qubo Target MaxNodes NumNodes NumLinks\n"
-        "p qubo 0 7 5 20\n"
-        "0 0 6.000000\n"
-        "0 1 -16.000000\n"
-        "0 2 8.000000\n"
-        "0 3 0.000000\n"
-        "0 4 -4.000000\n"
-        "0 5 -12.000000\n"
-        "0 6 12.000000\n"
-        "1 2 4.000000\n"
-        "1 3 0.000000\n"
-        "1 4 8.000000\n"
-        "1 5 0.000000\n"
-        "1 6 4.000000\n"
-        "2 2 -4.000000\n"
-        "2 4 4.000000\n"
-        "2 5 -16.000000\n"
-        "2 6 8.000000\n"
-        "3 3 14.000000\n"
-        "3 4 -16.000000\n"
-        "3 5 -4.000000\n"
-        "3 6 -8.000000\n"
-        "4 5 4.000000\n"
-        "4 6 4.000000\n"
-        "5 5 16.000000\n"
-        "5 6 -4.000000\n"
-        "6 6 -8.000000\n",
-        -14.0),
-    std::make_pair<std::string, double>(
-        "c qubo Target MaxNodes NumNodes NumLinks\n"
-        "p qubo 0 13 11 42\n"
-        "0 0 -2.000000\n"
-        "0 1 -4.000000\n"
-        "0 2 -4.000000\n"
-        "0 4 -4.000000\n"
-        "0 5 8.000000\n"
-        "0 6 4.000000\n"
-        "0 9 0.000000\n"
-        "0 10 4.000000\n"
-        "1 1 -6.000000\n"
-        "1 2 4.000000\n"
-        "1 3 8.000000\n"
-        "1 5 -4.000000\n"
-        "1 6 -8.000000\n"
-        "1 7 0.000000\n"
-        "1 9 12.000000\n"
-        "1 12 4.000000\n"
-        "2 2 -12.000000\n"
-        "2 3 4.000000\n"
-        "2 5 4.000000\n"
-        "2 7 4.000000\n"
-        "2 9 8.000000\n"
-        "2 10 4.000000\n"
-        "2 12 0.000000\n"
-        "3 3 -8.000000\n"
-        "3 5 4.000000\n"
-        "3 6 -8.000000\n"
-        "3 7 4.000000\n"
-        "3 9 4.000000\n"
-        "3 10 8.000000\n"
-        "3 12 -8.000000\n"
-        "4 4 4.000000\n"
-        "4 5 -4.000000\n"
-        "4 6 0.000000\n"
-        "4 7 -4.000000\n"
-        "4 12 4.000000\n"
-        "5 5 -12.000000\n"
-        "5 6 4.000000\n"
-        "5 7 4.000000\n"
-        "5 9 4.000000\n"
-        "5 10 8.000000\n"
-        "5 12 -4.000000\n"
-        "6 6 8.000000\n"
-        "6 7 -8.000000\n"
-        "6 9 -4.000000\n"
-        "6 12 4.000000\n"
-        "7 7 2.000000\n"
-        "7 12 -4.000000\n"
-        "9 9 -16.000000\n"
-        "9 10 4.000000\n"
-        "9 12 4.000000\n"
-        "10 10 -10.000000\n"
-        "10 12 -8.000000\n"
-        "12 12 4.000000\n",
-        -32.0)
-        };
 
-BOOST_AUTO_TEST_SUITE(calculate_energy)
 
-BOOST_AUTO_TEST_CASE(minimal_energy_properly_calculated) {
-  for (auto &qubo_data : qubo_file_contents) {
-    std::stringstream stream(qubo_data.first);
-    stream.unsetf(std::ios::skipws);
-    qubo::QUBOModel<int, double> problem =
-        qubo::QUBOModel<int, double>::load(stream);
+namespace exhaustive {
+namespace sycl = cl::sycl;
 
-    sycl::queue q(sycl::cpu_selector{});
-    auto solution = exhaustive::solve(q, problem, 0, 1 <<problem.get_nodes() );  //changed signature
+/**
+ * @brief Solve, by finding the minimum energy state, a QUBO model using
+ * exhuastive search.
+ *
+ * @tparam NodeType Integer type of the variables addresses.
+ * @tparam CoefType Real type of the variables values.
+ * @param q Queue on which the algorithm will be run.
+ * @param qubos QUBO model to solve.
+ * @return qubo::Solution Solution, contaning minimal energy and a
+ * minimal energy state.
+ */
 
-    BOOST_TEST_REQUIRE(std::abs(solution.energy - qubo_data.second) < 1e-13);
+template <class NodeType, class CoefType>
+qubo::Solution solve(sycl::queue &q,
+                     qubo::QUBOModel<NodeType, CoefType> &qubos, ulong start_state, ulong end_state) {
+
+  auto wg_size =
+      q.get_device().get_info<sycl::info::device::max_work_group_size>();
+  auto max_compute_units =
+      q.get_device().get_info<sycl::info::device::max_compute_units>();
+  auto n_bits = qubos.get_nodes();
+
+  std::vector<double> energies;
+  std::vector<ulong> states;
+
+  {
+
+    sycl::buffer<double, 2> qubo_buf(sycl::range<2>(n_bits, n_bits));
+    for (auto i = 0; i < n_bits; ++i) {
+      for (auto j = i; j < n_bits; ++j) {
+        if (i == j) {
+#ifdef DEBUG
+          std::cout << i << " " << j << " " << qubos.get_variable(i) << "\n";
+#endif
+          qubo_buf.get_host_access()[i][i] = qubos.get_variable(i);
+        } else {
+#ifdef DEBUG
+          std::cout << i << " " << j << " "
+                    << qubos.get_connection(std::make_pair(i, j)) << "\n";
+#endif
+          qubo_buf.get_host_access()[i][j] =
+              qubos.get_connection(std::make_pair(i, j));
+        }
+      }
+    }
+
+    auto num_threads = max_compute_units;
+    sycl::buffer<ulong, 2> ranges_buf(sycl::range<2>(num_threads, 2));
+
+    // note that all the variables related to states have to be unsigned 64 bit integers
+    //ulong n_states = 1 << n_bits; 
+    ulong n_states = end_state - start_state;
+    ulong states_per_thread = n_states / num_threads;
+    ulong states_per_thread_reminder = n_states % num_threads;
+
+    ulong reminder_count = 0;
+    //ulong states_count = 0;
+    ulong states_count = start_state;
+
+    for (auto i = 0; i < num_threads; ++i) {
+      ulong state_start = states_count;
+      states_count += states_per_thread;
+      if (reminder_count < states_per_thread_reminder) {
+        states_count += 1;
+        reminder_count++;
+      }
+      auto state_end = states_count;
+
+      ranges_buf.get_host_access()[i][0] = state_start;
+      ranges_buf.get_host_access()[i][1] = state_end;
+#ifdef DEBUG
+      std::cout << ranges_buf.get_host_access()[i][0];
+      std::cout << ", ";
+      std::cout << ranges_buf.get_host_access()[i][1] << std::endl;
+#endif
+    }
+    sycl::buffer<CoefType, 1> energy_buf(num_threads);
+    sycl::buffer<ulong, 1> state_buf(num_threads);
+
+    q.submit([&](sycl::handler &h) {
+       auto qubo_acc =
+           qubo_buf.template get_access<sycl::access::mode::read>(h);
+       auto ranges_acc =
+           ranges_buf.template get_access<sycl::access::mode::read>(h);
+       auto energy_acc =
+           energy_buf.template get_access<sycl::access::mode::write>(h);
+       auto state_acc =
+           state_buf.template get_access<sycl::access::mode::write>(h);
+
+       h.parallel_for<class calc_energy>(
+           sycl::range<1>(num_threads), [=](sycl::id<1> item) {
+             CoefType e_best = std::numeric_limits<CoefType>::max();
+             ulong state_best = 0;
+             auto local_start = ranges_acc[item][0];
+             auto local_end = ranges_acc[item][1];
+             for (ulong state = local_start; state < local_end; ++state) {
+               // calculate energy for a given state
+               CoefType e = 0.0;
+
+               for (size_t i = 0; i < n_bits; ++i) {
+                 for (size_t j = i; j < n_bits; ++j) {
+                   if (i == j) {
+                     auto i_bit = ((state >> i) & 1);
+                     if (i_bit) {
+                       e += qubo_acc[i][i];
+                     }
+                   } else {
+                     auto i_bit = ((state >> i) & 1);
+                     auto j_bit = ((state >> j) & 1);
+                     if (i_bit and j_bit) {
+                       e += qubo_acc[i][j];
+                     }
+                   }
+                 }
+               }
+               if (e < e_best) {
+                 e_best = e;
+                 state_best = state;
+               }
+             }
+             state_acc[item] = state_best;
+             energy_acc[item] = e_best;
+           });  // end parallel for
+     }).wait(); // end submit
+
+    for (auto i = 0; i < energy_buf.get_count(); ++i) {
+#ifdef DEBUG
+      std::cout << i << ", " << energy_buf.get_host_access()[i] << std::endl;
+#endif
+      energies.push_back(energy_buf.get_host_access()[i]);
+    }
+    for (auto i = 0; i < state_buf.get_count(); ++i) {
+#ifdef DEBUG
+      std::cout << i << ", ";
+      for (auto &bit : helpers::ulong_to_vec(state_buf.get_host_access()[i], n_bits)) {
+        std::cout << (int)bit << " ";
+      }
+      std::cout << std::endl;
+#endif
+      states.push_back(state_buf.get_host_access()[i]);
+    }
   }
+
+  auto min_energy = std::min_element(energies.begin(), energies.end());
+  auto min_idx_energy = std::distance(energies.begin(), min_energy);
+#ifdef DEBUG
+  std::cout << "min element at: " << min_idx_energy << std::endl;
+#endif
+
+  auto result = helpers::ulong_to_vec(states[min_idx_energy], n_bits);
+
+  return qubo::Solution(result.begin(), result.end(), energies[min_idx_energy]);
+  // if(start_state > 3)
+  // {
+  //   return qubo::Solution(result.begin(), result.end(), -37);
+  // } else {
+  //   return qubo::Solution(result.begin(), result.end(), energies[min_idx_energy]);
+  // }
+
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}; // namespace exhaustive
+
+#endif
