@@ -58,8 +58,14 @@ using QuadraticCoef = std::unordered_map<std::pair<NodeType, NodeType>,
  */
 template <class NodeType, class CoefType> class QUBOModel {
 private:
-
   friend class boost::serialization::access;
+  
+  /**
+   * @brief Serialize the object into archive.
+   * 
+   * @param Archive object for saving/loading.
+   * @param Version number of the archive.
+   */
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)
   {
@@ -68,6 +74,7 @@ private:
     ar & num_nodes;
   }
 
+protected:
  /**
   * @brief QUBO model linear coefficients store.
   * 
@@ -86,12 +93,17 @@ private:
   
 public:
   /**
+   * @brief Default constructor for QUBOModel class.
+   * 
+   */
+  QUBOModel();
+
+  /**
    * @brief Construct a new QUBOModel object.
    * 
    * @param c_linear Linear coefficients of the QUBO model.
    * @param c_quadratic Quadratic coefficients of the QUBO model.
    */
-  QUBOModel() {};
   QUBOModel(LinearCoef<NodeType, CoefType> &c_linear,
             QuadraticCoef<NodeType, CoefType> &c_quadratic);
   
@@ -180,6 +192,9 @@ public:
 };
 
 template <class NodeType, class CoefType>
+QUBOModel<NodeType, CoefType>::QUBOModel() {}
+
+template <class NodeType, class CoefType>
 QUBOModel<NodeType, CoefType>::QUBOModel(
     qubo::LinearCoef<NodeType, CoefType> &c_linear,
     qubo::QuadraticCoef<NodeType, CoefType> &c_quadratic) {
@@ -191,6 +206,7 @@ template <class NodeType, class CoefType>
 void QUBOModel<NodeType, CoefType>::set_nodes(int number) {
   QUBOModel::num_nodes = number;
 }
+
 template <class NodeType, class CoefType>
 ulong QUBOModel<NodeType, CoefType>::get_nodes() const {
   return num_nodes;

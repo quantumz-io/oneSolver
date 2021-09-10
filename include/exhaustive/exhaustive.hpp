@@ -24,6 +24,8 @@ namespace sycl = cl::sycl;
  * @tparam CoefType Real type of the variables values.
  * @param q Queue on which the algorithm will be run.
  * @param qubos QUBO model to solve.
+ * @param start state in solution search space.
+ * @param end state in solution search space.
  * @return qubo::Solution Solution, contaning minimal energy and a
  * minimal energy state.
  */
@@ -168,13 +170,6 @@ qubo::Solution solve(sycl::queue &q,
   auto result = helpers::ulong_to_vec(states[min_idx_energy], n_bits);
 
   return qubo::Solution(result.begin(), result.end(), energies[min_idx_energy]);
-  // if(start_state > 3)
-  // {
-  //   return qubo::Solution(result.begin(), result.end(), -37);
-  // } else {
-  //   return qubo::Solution(result.begin(), result.end(), energies[min_idx_energy]);
-  // }
-
 }
 
 }; // namespace exhaustive
