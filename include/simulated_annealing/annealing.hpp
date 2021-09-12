@@ -45,6 +45,7 @@ double energy(const QuboArray flat_qubo, StateArray state, int N) {
  * @param q queue to use for computations.
  * @param h_beta_schedule array with values of beta. Note that
  *                        those values should follow decreasing order.
+ * @param seed for random number generator.
  * @param num_iter number of iterations of every pass of the algorithm.
  *                 It should conincide with length of \p h_beta_schedule
  * @param num_tries number of independent passes of the algorithm.
@@ -54,7 +55,7 @@ double energy(const QuboArray flat_qubo, StateArray state, int N) {
  */
 template <typename T>
 qubo::Solution anneal(qubo::QUBOModel<int, T> instance, sycl::queue q,
-                      std::vector<double> &h_beta_schedule, int num_iter,
+                      std::vector<double> &h_beta_schedule, std::uint64_t seed, int num_iter,
                       unsigned int num_tries, int sweeps_per_beta = 1) {
   auto N = instance.get_nodes();
   auto qubo_vector = helpers::flatten_qubo(instance);
@@ -84,7 +85,7 @@ qubo::Solution anneal(qubo::QUBOModel<int, T> instance, sycl::queue q,
 
        h.parallel_for<class annealing>(
            sycl::range<1>{num_tries}, [=](sycl::id<1> i) {
-             mkl::rng::device::philox4x32x10 engine(1234, i);
+             mkl::rng::device::philox4x32x10 engine(seed, i);
              sa::RandomGenerator random(engine, N);
 
              for (auto j = 0; j < N; j++) {

@@ -40,7 +40,7 @@ void construct_geometric_beta_schedule(std::vector<double> &schedule,
   }
 }
 
-qubo::Solution sycl_native_anneal(qubo::QUBOModel<int, double> instance, std::string device_type, std::string schedule_type,double beta_min, double beta_max, uint num_iter, uint num_tries)
+qubo::Solution sycl_native_anneal(qubo::QUBOModel<int, double> instance, std::string device_type, std::string schedule_type, std::uint64_t seed, double beta_min, double beta_max, uint num_iter, uint num_tries)
 {
     queue_ptr q_ptr;
 
@@ -67,7 +67,7 @@ qubo::Solution sycl_native_anneal(qubo::QUBOModel<int, double> instance, std::st
     }
 
     auto solution =
-        sa::anneal(instance, *q_ptr, beta_schedule, num_iter, num_tries);
+        sa::anneal(instance, *q_ptr, beta_schedule, seed, num_iter, num_tries);
 
     return solution;
 }
@@ -89,7 +89,9 @@ int main(int argc, char *argv[]) {
   std::string schedule_type;
   std::string device_type;
   std::vector<char> msg_buff;
-
+  std::uint64_t *seed_buff = NULL;
+  std::uint64_t seed;
+  
   uint num_iter;
   uint num_tries;
   uint param_buff[2];
@@ -337,9 +339,25 @@ int main(int argc, char *argv[]) {
       num_tries = param_buff[1];
       // std::cout << "Number of iterations: " << num_iter << std::endl;
       // std::cout << "Number of tries: " << num_tries << std::endl;
-    }    
+    }
 
-    auto solution = sycl_native_anneal(instance, device_type, schedule_type, beta_min, beta_max, num_iter, num_tries);
+    //Send the seed for random number generator to all the processes.
+    if(rank == 0){
+      seed_buff = new std::uint64_t[num_procs];
+      //Initialize seed somehow;
+      for(auto i=0; i < num_procs; ++i){
+        seed_buff[i] = (i+1)*1234;
+      }    
+    }
+    
+    MPI::COMM_WORLD.Scatter(seed_buff, 1, MPI_INT64_T, &seed, 1, MPI_INT64_T, 0);
+    
+    if(rank == 0){
+      delete [] seed_buff;
+    }
+    
+    //std::cout << "seed: " << seed << std::endl;
+    auto solution = sycl_native_anneal(instance, device_type, schedule_type, seed, beta_min, beta_max, num_iter, num_tries);
 
     double *energy_buff = new double[num_procs];
 
