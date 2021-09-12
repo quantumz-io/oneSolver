@@ -74,9 +74,6 @@ int main(int argc, char *argv[]) {
   std::string device_type;
   std::vector<char> msg_buff;
   
-
-  
-
   //MPI::Status msg_status;
 
   qubo::QUBOModel<int, double> instance;
@@ -174,6 +171,7 @@ int main(int argc, char *argv[]) {
       msg_size = oss.str().size();
     }
 
+    //Send QUBOModel instance to all the proecesses.
     MPI::COMM_WORLD.Bcast(&msg_size,
                          1,
                          MPI::LONG_LONG_INT,
@@ -202,6 +200,7 @@ int main(int argc, char *argv[]) {
      }
     }
 
+    // Send device_type to all the processes.
     if(rank == 0){
       msg_size = device_type.size();
       msg_buff.assign(device_type.c_str(),device_type.c_str() + device_type.size() +1);
@@ -290,7 +289,6 @@ int main(int argc, char *argv[]) {
        solution.energy = energies[min_idx_energy];
 
        process_rank = min_idx_energy;
-       //std::cout << min_energy << std::endl;
        
       //  for (auto i = energies.begin(); i != energies.end(); ++i)
       //     std::cout << *i << ' ';
@@ -325,25 +323,26 @@ int main(int argc, char *argv[]) {
       // for (auto i = 0; i < solution.state.size(); ++i) {
       //   std::cout << (int)solution.state[i] << " ";
       // }
-      std::cout << std::endl;
+      //std::cout << std::endl;
       std::ofstream results_file(output_file);
       solution.save(results_file);
       results_file.close();
     }
-    
 
-    
+    delete [] energy_buff;
+      
   } catch (std::exception &e) {
     std::cerr << "error: " << e.what() << "\n";
     return 1;
   } catch (...) {
     std::cerr << "Exception of unknown type!\n";
   }
+
   if(rank == 0){
-    delete ranges_buf;
+    delete [] ranges_buf;
     std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
   }
-  
+
   MPI_Finalize();
   return 0;
 }
