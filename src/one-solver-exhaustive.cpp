@@ -80,8 +80,6 @@ int main(int argc, char *argv[]) {
   
 
   try {
-
-    //MPI::Init(argc, argv);
     // Start MPI.
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS) {
       std::cout << "Failed to initialize MPI\n";
@@ -172,19 +170,19 @@ int main(int argc, char *argv[]) {
     }
 
     //Send QUBOModel instance to all the proecesses.
-    MPI::COMM_WORLD.Bcast(&msg_size,
+    MPI_Bcast(&msg_size,
                          1,
-                         MPI::LONG_LONG_INT,
-                         0);
+                         MPI_LONG_LONG_INT,
+                         0, MPI_COMM_WORLD);
   
     if(rank != 0){
       msg_buff.resize(msg_size);
     }
 
-    MPI::COMM_WORLD.Bcast(msg_buff.data(),
+    MPI_Bcast(msg_buff.data(),
                          msg_size,
-                         MPI::Datatype(MPI::CHAR),
-                         0);
+                         MPI_CHAR,
+                         0, MPI_COMM_WORLD);
     
     if(rank != 0){
       if (msg_buff.size() > 0) {
@@ -206,19 +204,19 @@ int main(int argc, char *argv[]) {
       msg_buff.assign(device_type.c_str(),device_type.c_str() + device_type.size() +1);
     }
   
-    MPI::COMM_WORLD.Bcast(&msg_size,
+    MPI_Bcast(&msg_size,
                          1,
-                         MPI::LONG_LONG_INT,
-                         0);
+                         MPI_LONG_LONG_INT,
+                         0, MPI_COMM_WORLD);
 
     if(rank != 0){
       msg_buff.resize(msg_size);
     }
   
-    MPI::COMM_WORLD.Bcast(msg_buff.data(),
+    MPI_Bcast(msg_buff.data(),
                          msg_size,
-                         MPI::Datatype(MPI::CHAR),
-                         0);
+                         MPI_CHAR,
+                         0, MPI_COMM_WORLD);
 
     if(rank != 0){
       device_type = std::string(&msg_buff[0], msg_size);
@@ -266,7 +264,7 @@ int main(int argc, char *argv[]) {
       // }
     }
 
-    MPI::COMM_WORLD.Scatter(ranges_buf, 2, MPI::UNSIGNED_LONG,recv_arr, 2, MPI::UNSIGNED_LONG, 0);
+    MPI_Scatter(ranges_buf, 2, MPI_UNSIGNED_LONG,recv_arr, 2, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
     //std::cout << "Rank #" << rank << " range: " << recv_arr[0] << "-" << recv_arr[1] << std::endl;
     start_state = recv_arr[0];
     end_state = recv_arr[1];
@@ -279,7 +277,7 @@ int main(int argc, char *argv[]) {
     
     double *energy_buff = new double[num_procs];
 
-    MPI::COMM_WORLD.Gather(&solution.energy, 1, MPI::DOUBLE, energy_buff, 1, MPI::DOUBLE, 0);
+    MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     
     if(rank == 0){
        std::vector<double> energies(&energy_buff[0], &energy_buff[num_procs]);
@@ -298,20 +296,20 @@ int main(int argc, char *argv[]) {
       //  }
     }
 
-    MPI::COMM_WORLD.Bcast(&process_rank, 1, MPI::INT, 0);
+    MPI_Bcast(&process_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     
     if ((process_rank !=0) && (rank == process_rank))
     {
        auto state = solution.state; 
-       MPI::COMM_WORLD.Send(state.data(), state.size(), MPI_CHAR, 0, 0);
+       MPI_Send(state.data(), state.size(), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
        //std::cout << "rank: " << rank << std::endl;
     }
 
     if(rank == 0){
       char buff[32];
       if(process_rank != 0){
-        MPI::COMM_WORLD.Recv(&buff, 32, MPI_CHAR, process_rank, 0 );
+        MPI_Recv(&buff, 32, MPI_CHAR, process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         // for (auto i = 0; i < solution.state.size(); ++i) {
         // std::cout << (int)buff[i] << " ";
         // }
