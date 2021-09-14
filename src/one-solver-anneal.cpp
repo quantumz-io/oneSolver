@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <ctime>
+#include <random>
 
 #include <mpi.h>
 #include "CL/sycl.hpp"
@@ -344,9 +345,15 @@ int main(int argc, char *argv[]) {
     //Send the seed for random number generator to all the processes.
     if(rank == 0){
       seed_buff = new std::uint64_t[num_procs];
-      //Initialize seed somehow;
+      std::random_device rd; // non-deterministic generator
+      std::mt19937_64 gen(rd()); // to seed mersenne twister.
+                                 // replace rd() with a constant seed 
+                                 // to get repeatable result.
+                                 // https://docs.microsoft.com/en-us/cpp/standard-library/random?view=msvc-160
+
       for(auto i=0; i < num_procs; ++i){
-        seed_buff[i] = (i+1)*1234;
+        seed_buff[i] = gen();
+        //std::cout << "seed: " << seed_buff[i] << std::endl;
       }    
     }
     
