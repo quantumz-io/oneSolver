@@ -102,12 +102,13 @@ int main(int argc, char *argv[]) {
 
   qubo::QUBOModel<int, double> instance;
 
-  try {
+  MPI_Status status;
 
-        //MPI::Init(argc, argv);
+  try {
     // Start MPI.
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS) {
       std::cout << "Failed to initialize MPI\n";
+      throw std::runtime_error("Failed to initialize MPI\n");
       exit(-1);
     }
 
@@ -228,19 +229,19 @@ int main(int argc, char *argv[]) {
     }
 
     //Send QUBOModel instance to all the proecesses.
-    MPI::COMM_WORLD.Bcast(&msg_size,
+    MPI_Bcast(&msg_size,
                          1,
-                         MPI::LONG_LONG_INT,
-                         0);
+                         MPI_LONG_LONG_INT,
+                         0, MPI_COMM_WORLD);
   
     if(rank != 0){
       msg_buff.resize(msg_size);
     }
 
-    MPI::COMM_WORLD.Bcast(msg_buff.data(),
+    MPI_Bcast(msg_buff.data(),
                          msg_size,
-                         MPI::Datatype(MPI::CHAR),
-                         0);
+                         MPI_CHAR,
+                         0, MPI_COMM_WORLD);
     
     if(rank != 0){
       if (msg_buff.size() > 0) {
@@ -262,19 +263,19 @@ int main(int argc, char *argv[]) {
       msg_buff.assign(device_type.c_str(),device_type.c_str() + device_type.size() +1);
     }
   
-    MPI::COMM_WORLD.Bcast(&msg_size,
+    MPI_Bcast(&msg_size,
                          1,
-                         MPI::LONG_LONG_INT,
-                         0);
+                         MPI_LONG_LONG_INT,
+                         0, MPI_COMM_WORLD);
 
     if(rank != 0){
       msg_buff.resize(msg_size);
     }
   
-    MPI::COMM_WORLD.Bcast(msg_buff.data(),
+    MPI_Bcast(msg_buff.data(),
                          msg_size,
-                         MPI::Datatype(MPI::CHAR),
-                         0);
+                         MPI_CHAR,
+                         0, MPI_COMM_WORLD);
 
     if(rank != 0){
       device_type = std::string(&msg_buff[0], msg_size);
@@ -287,19 +288,19 @@ int main(int argc, char *argv[]) {
       msg_buff.assign(schedule_type.c_str(),schedule_type.c_str() + schedule_type.size() +1);
     }
   
-    MPI::COMM_WORLD.Bcast(&msg_size,
+    MPI_Bcast(&msg_size,
                          1,
-                         MPI::LONG_LONG_INT,
-                         0);
+                         MPI_LONG_LONG_INT,
+                         0, MPI_COMM_WORLD);
 
     if(rank != 0){
       msg_buff.resize(msg_size);
     }
   
-    MPI::COMM_WORLD.Bcast(msg_buff.data(),
+    MPI_Bcast(msg_buff.data(),
                          msg_size,
-                         MPI::Datatype(MPI::CHAR),
-                         0);
+                         MPI_CHAR,
+                         0, MPI_COMM_WORLD);
 
     if(rank != 0){
       schedule_type = std::string(&msg_buff[0], msg_size);
@@ -312,10 +313,10 @@ int main(int argc, char *argv[]) {
       beta_buff[1] = beta_max;
     }
 
-    MPI::COMM_WORLD.Bcast(&beta_buff,
+    MPI_Bcast(&beta_buff,
                          2,
                          MPI::DOUBLE,
-                         0);
+                         0, MPI_COMM_WORLD);
 
     if(rank !=0){
       beta_min = beta_buff[0];
@@ -330,10 +331,10 @@ int main(int argc, char *argv[]) {
       param_buff[1] = num_tries;
     }
 
-    MPI::COMM_WORLD.Bcast(&param_buff,
+    MPI_Bcast(&param_buff,
                          2,
-                         MPI::UNSIGNED,
-                         0);
+                         MPI_UNSIGNED,
+                         0, MPI_COMM_WORLD);
 
     if(rank !=0){
       num_iter = param_buff[0];
@@ -345,6 +346,7 @@ int main(int argc, char *argv[]) {
     //Send the seed for random number generator to all the processes.
     if(rank == 0){
       seed_buff = new std::uint64_t[num_procs];
+      //Seed generation using mt19937_64 i.e 64 bit Mersenne Twister by Matsumoto, 2000.
       std::random_device rd; // non-deterministic generator
       std::mt19937_64 gen(rd()); // to seed mersenne twister.
                                  // replace rd() with a constant seed 
@@ -357,7 +359,7 @@ int main(int argc, char *argv[]) {
       }    
     }
     
-    MPI::COMM_WORLD.Scatter(seed_buff, 1, MPI_INT64_T, &seed, 1, MPI_INT64_T, 0);
+    MPI_Scatter(seed_buff, 1, MPI_INT64_T, &seed, 1, MPI_INT64_T, 0, MPI_COMM_WORLD);
     
     if(rank == 0){
       delete [] seed_buff;
@@ -368,7 +370,7 @@ int main(int argc, char *argv[]) {
 
     double *energy_buff = new double[num_procs];
 
-    MPI::COMM_WORLD.Gather(&solution.energy, 1, MPI::DOUBLE, energy_buff, 1, MPI::DOUBLE, 0);
+    MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if(rank == 0){
        std::vector<double> energies(&energy_buff[0], &energy_buff[num_procs]);
@@ -387,19 +389,19 @@ int main(int argc, char *argv[]) {
       //  }
     }
 
-    MPI::COMM_WORLD.Bcast(&process_rank, 1, MPI::INT, 0);
+    MPI_Bcast(&process_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     if ((process_rank !=0) && (rank == process_rank))
     {
        auto state = solution.state; 
-       MPI::COMM_WORLD.Send(state.data(), state.size(), MPI_CHAR, 0, 0);
+       MPI_Send(state.data(), state.size(), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
        //std::cout << "rank: " << rank << std::endl;
     }
 
     if(rank == 0){
       char buff[32];
       if(process_rank != 0){
-        MPI::COMM_WORLD.Recv(&buff, 32, MPI_CHAR, process_rank, 0 );
+        MPI_Recv(&buff, 32, MPI_CHAR, process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         // for (auto i = 0; i < solution.state.size(); ++i) {
         // std::cout << (int)buff[i] << " ";
         // }
