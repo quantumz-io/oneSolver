@@ -367,7 +367,7 @@ int main(int argc, char *argv[]) {
       }    
     }
     
-    if (MPI_Scatter(seed_buff, 1, MPI_INT64_T, &seed, 1, MPI_INT64_T, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+    if (MPI_Scatter(seed_buff, 1, MPI_INT64_T, &seed, 1, MPI_INT64_T, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
       throw std::runtime_error("MPI scatter failed\n");
     }
     
@@ -383,7 +383,7 @@ int main(int argc, char *argv[]) {
 
     double *energy_buff = new double[num_procs];
 
-    if (MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+    if (MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
       throw std::runtime_error("MPI gather failed\n");
     }
 
