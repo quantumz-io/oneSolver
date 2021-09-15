@@ -18,6 +18,8 @@
 #include "model/solution.hpp"
 #include "simulated_annealing/annealing.hpp"
 
+#define SEED 1234
+
 namespace po = boost::program_options;
 namespace sycl = cl::sycl;
 
@@ -45,6 +47,16 @@ qubo::Solution sycl_native_anneal(qubo::QUBOModel<int, double> instance, std::st
 {
     queue_ptr q_ptr;
 
+    char machine_name[MPI_MAX_PROCESSOR_NAME];
+    int name_len=0;
+    int rank = 0;
+    
+    // Determine the rank number.
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    // Get the machine name.
+    MPI_Get_processor_name(machine_name, &name_len);
+
     try {
       q_ptr = queue_ptr(
           new sycl::queue(*devices::construct_device_selector(device_type)));
@@ -52,8 +64,8 @@ qubo::Solution sycl_native_anneal(qubo::QUBOModel<int, double> instance, std::st
       std::cerr << "No devices of given type could be initialized."
                 << std::endl;
     }
-
-    std::cout << "Using device: "
+  
+    std::cout << "Node ID [" << machine_name << "], " << "Rank [" << rank << "], " << "Using device: "
               << q_ptr->get_device().get_info<sycl::info::device::name>()
               << std::endl;
 
@@ -79,10 +91,11 @@ int main(int argc, char *argv[]) {
   char machine_name[MPI_MAX_PROCESSOR_NAME];
   int name_len=0;
   int rank=0;
+  int root = 0; // Rank zero process
   int process_rank = 0;
   int num_procs=0;
   int size=0;
-  //int count =0;
+  
   long long int msg_size =0;
 
   std::string input_file;
@@ -107,9 +120,7 @@ int main(int argc, char *argv[]) {
   try {
     // Start MPI.
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS) {
-      std::cout << "Failed to initialize MPI\n";
       throw std::runtime_error("Failed to initialize MPI\n");
-      exit(-1);
     }
 
     // Create the communicator, and retrieve the number of MPI ranks.
@@ -117,17 +128,16 @@ int main(int argc, char *argv[]) {
 
     // Determine the rank number.
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
+    
+#ifdef DEBUG
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     // Get the machine name.
     MPI_Get_processor_name(machine_name, &name_len);
 
-    //std::cout << "Rank #" << rank << " runs on: " << machine_name;
-              // << ", uses device: "
-              // << myQueue.get_device().get_info<info::device::name>() << "\n";
-    
-    if(rank == 0){
+    std::cout << " Node ID: " << machine_name << " Rank #" << rank;
+#endif    
+    if (rank == 0) {
       po::options_description options("Allowed options");
       options.add_options()("help", "produce help message")(
          "input", po::value<std::string>(&input_file), "input file")(
@@ -218,202 +228,213 @@ int main(int argc, char *argv[]) {
          boost::archive::text_oarchive ar(oss);
          // write class instance to archive
          ar << instance;
-         // archive and stream closed when destructors are called
+         // archive and stream closed when destructors are called.
       }
-
-      //std::cout << "sSize: " << oss.str().size() << std::endl;
-      //std::cout << "sData: " << oss.str().c_str() << std::endl;
-
+#ifdef DEBUG
+      std::cout << "sSize: " << oss.str().size() << std::endl;
+      std::cout << "sData: " << oss.str().c_str() << std::endl;
+#endif
       msg_buff.assign(oss.str().c_str(), oss.str().c_str() + oss.str().size() +1);
       msg_size = oss.str().size();
     }
 
-    //Send QUBOModel instance to all the proecesses.
-    MPI_Bcast(&msg_size,
-                         1,
-                         MPI_LONG_LONG_INT,
-                         0, MPI_COMM_WORLD);
+    // Send QUBOModel instance to all the proecesses.
+    if (MPI_Bcast(&msg_size, 1, MPI_LONG_LONG_INT, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
+    } 
   
-    if(rank != 0){
+    if (rank != 0) {
       msg_buff.resize(msg_size);
     }
 
-    MPI_Bcast(msg_buff.data(),
-                         msg_size,
-                         MPI_CHAR,
-                         0, MPI_COMM_WORLD);
+    if (MPI_Bcast(msg_buff.data(), msg_size, MPI_CHAR, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
+    }
     
-    if(rank != 0){
+    if (rank != 0) {
       if (msg_buff.size() > 0) {
-      std::istringstream iss(std::string(msg_buff.data(), msg_buff.size()));
-      //std::cout << "rSize: " << iss.str().size() << std::endl;
-      //std::cout << "rData: " << iss.str().c_str() << std::endl;
-
-       {
-         boost::archive::text_iarchive ar(iss);   
-         ar >> instance;
-       }
-        //auto solution = sycl_native(instance, device_type);
-     }
+        std::istringstream iss(std::string(msg_buff.data(), msg_buff.size()));
+#ifdef DEBUG
+        std::cout << "rSize: " << iss.str().size() << std::endl;
+        std::cout << "rData: " << iss.str().c_str() << std::endl;
+#endif
+        {
+          boost::archive::text_iarchive ar(iss);   
+          ar >> instance;
+        }
+      }
     }
 
     // Send device_type to all the processes.
-    if(rank == 0){
+    if (rank == 0) {
       msg_size = device_type.size();
       msg_buff.assign(device_type.c_str(),device_type.c_str() + device_type.size() +1);
     }
   
-    MPI_Bcast(&msg_size,
-                         1,
-                         MPI_LONG_LONG_INT,
-                         0, MPI_COMM_WORLD);
+    if (MPI_Bcast(&msg_size, 1, MPI_LONG_LONG_INT, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
+    }
 
-    if(rank != 0){
+    if (rank != 0) {
       msg_buff.resize(msg_size);
     }
   
-    MPI_Bcast(msg_buff.data(),
-                         msg_size,
-                         MPI_CHAR,
-                         0, MPI_COMM_WORLD);
+    if (MPI_Bcast(msg_buff.data(), msg_size, MPI_CHAR, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
+    }
 
-    if(rank != 0){
+    if (rank != 0) {
       device_type = std::string(&msg_buff[0], msg_size);
-      //std::cout << "device_type: " << device_type << std::endl;
+#ifdef DEBUG
+      std::cout << "device_type: " << device_type << std::endl;
+#endif
     }
 
     // Send schedule_type to all the processes.
-    if(rank == 0){
+    if (rank == 0) {
       msg_size = schedule_type.size();
       msg_buff.assign(schedule_type.c_str(),schedule_type.c_str() + schedule_type.size() +1);
     }
   
-    MPI_Bcast(&msg_size,
-                         1,
-                         MPI_LONG_LONG_INT,
-                         0, MPI_COMM_WORLD);
+    if (MPI_Bcast(&msg_size, 1, MPI_LONG_LONG_INT, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
+    }
 
-    if(rank != 0){
+    if (rank != 0) {
       msg_buff.resize(msg_size);
     }
   
-    MPI_Bcast(msg_buff.data(),
-                         msg_size,
-                         MPI_CHAR,
-                         0, MPI_COMM_WORLD);
-
-    if(rank != 0){
-      schedule_type = std::string(&msg_buff[0], msg_size);
-      //std::cout << "schedule_type: " << schedule_type << std::endl;
+    if (MPI_Bcast(msg_buff.data(), msg_size, MPI_CHAR, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
     }
 
-    //Send beta_min and beta_max to all the processes.
+    if (rank != 0) {
+      schedule_type = std::string(&msg_buff[0], msg_size);
+#ifdef DEBUG
+      std::cout << "schedule_type: " << schedule_type << std::endl;
+#endif
+    }
+
+    // Send beta_min and beta_max to all the processes.
     if(rank == 0){
       beta_buff[0] = beta_min;
       beta_buff[1] = beta_max;
     }
 
-    MPI_Bcast(&beta_buff,
-                         2,
-                         MPI::DOUBLE,
-                         0, MPI_COMM_WORLD);
-
-    if(rank !=0){
-      beta_min = beta_buff[0];
-      beta_max = beta_buff[1];
-      // std::cout << "Beta range: [" << beta_min << ", " << beta_max << "]"
-      //           << std::endl;
+    if (MPI_Bcast(&beta_buff, 2, MPI::DOUBLE, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
     }
 
-    //Send num_iter and num_tries to all the processes.
-    if(rank == 0){
+    if (rank !=0) {
+      beta_min = beta_buff[0];
+      beta_max = beta_buff[1];
+#ifdef DEBUG
+      std::cout << "Beta range: [" << beta_min << ", " << beta_max << "]"
+                << std::endl;
+#endif
+    }
+
+    // Send num_iter and num_tries to all the processes.
+    if (rank == 0) {
       param_buff[0] = num_iter;
       param_buff[1] = num_tries;
     }
 
-    MPI_Bcast(&param_buff,
-                         2,
-                         MPI_UNSIGNED,
-                         0, MPI_COMM_WORLD);
-
-    if(rank !=0){
-      num_iter = param_buff[0];
-      num_tries = param_buff[1];
-      // std::cout << "Number of iterations: " << num_iter << std::endl;
-      // std::cout << "Number of tries: " << num_tries << std::endl;
+    if (MPI_Bcast(&param_buff, 2, MPI_UNSIGNED, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
     }
 
-    //Send the seed for random number generator to all the processes.
-    if(rank == 0){
-      seed_buff = new std::uint64_t[num_procs];
-      //Seed generation using mt19937_64 i.e 64 bit Mersenne Twister by Matsumoto, 2000.
-      std::random_device rd; // non-deterministic generator
-      std::mt19937_64 gen(rd()); // to seed mersenne twister.
-                                 // replace rd() with a constant seed 
-                                 // to get repeatable result.
-                                 // https://docs.microsoft.com/en-us/cpp/standard-library/random?view=msvc-160
+    if (rank !=0) {
+      num_iter = param_buff[0];
+      num_tries = param_buff[1];
+#ifdef DEBUG
+      std::cout << "Number of iterations: " << num_iter << std::endl;
+      std::cout << "Number of tries: " << num_tries << std::endl;
+#endif
+    }
 
-      for(auto i=0; i < num_procs; ++i){
+    // Send the seed for random number generator to all the processes.
+    if (rank == 0) {
+      seed_buff = new std::uint64_t[num_procs];
+      // Seed generation using mt19937_64 i.e 64 bit Mersenne Twister by Matsumoto, 2000.
+      //std::random_device rd; // for non-deterministic generator uncomment this line and
+      std::mt19937_64 gen(SEED); // replace SEED with rd() in mersenne twister.
+                                 
+      for (auto i=0; i < num_procs; ++i) {
         seed_buff[i] = gen();
-        //std::cout << "seed: " << seed_buff[i] << std::endl;
+#ifdef DEBUG
+        std::cout << "seed: " << seed_buff[i] << std::endl;
+#endif
       }    
     }
     
-    MPI_Scatter(seed_buff, 1, MPI_INT64_T, &seed, 1, MPI_INT64_T, 0, MPI_COMM_WORLD);
-    
-    if(rank == 0){
-      delete [] seed_buff;
+    if (MPI_Scatter(seed_buff, 1, MPI_INT64_T, &seed, 1, MPI_INT64_T, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI scatter failed\n");
     }
     
-    //std::cout << "seed: " << seed << std::endl;
+    if (rank == 0) {
+      delete [] seed_buff;
+    }
+
+#ifdef DEBUG   
+    std::cout << "seed: " << seed << std::endl;
+#endif
+
     auto solution = sycl_native_anneal(instance, device_type, schedule_type, seed, beta_min, beta_max, num_iter, num_tries);
 
     double *energy_buff = new double[num_procs];
 
-    MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    if (MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI gather failed\n");
+    }
 
-    if(rank == 0){
+    if (rank == 0) {
        std::vector<double> energies(&energy_buff[0], &energy_buff[num_procs]);
        auto min_energy = std::min_element(energies.begin(), energies.end());
        auto min_idx_energy = std::distance(energies.begin(), min_energy);
-       //std::cout << "min_idx: " << energies[min_idx_energy] << std::endl;
+#ifdef DEBUG
+       std::cout << "min_energy: " << energies[min_idx_energy] << std::endl;
+#endif
        solution.energy = energies[min_idx_energy];
 
        process_rank = min_idx_energy;
-       
-      //  for (auto i = energies.begin(); i != energies.end(); ++i)
-      //     std::cout << *i << ' ';
-
-      //  for (auto i = 0; i < num_procs; ++i) {
-      //  std::cout << "energy: " << ":" <<  energy_buff[i] << std::endl;
-      //  }
     }
 
-    MPI_Bcast(&process_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (MPI_Bcast(&process_rank, 1, MPI_INT, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+      throw std::runtime_error("MPI broadcast failed\n");
+    }
 
-    if ((process_rank !=0) && (rank == process_rank))
-    {
+    if ((process_rank != 0) && (rank == process_rank)) {
        auto state = solution.state; 
-       MPI_Send(state.data(), state.size(), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
-       //std::cout << "rank: " << rank << std::endl;
+       if (MPI_Send(state.data(), state.size(), MPI_CHAR, 0, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+         throw std::runtime_error("MPI send failed\n");
+        }
     }
 
-    if(rank == 0){
+    if (rank == 0) {
       char buff[32];
-      if(process_rank != 0){
-        MPI_Recv(&buff, 32, MPI_CHAR, process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        // for (auto i = 0; i < solution.state.size(); ++i) {
-        // std::cout << (int)buff[i] << " ";
-        // }
-        // std::cout << std::endl;
-        for(auto i=0; i < solution.state.size(); ++i ){
+      if (process_rank != 0) {
+        if (MPI_Recv(&buff, 32, MPI_CHAR, process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+         throw std::runtime_error("MPI receive failed\n");
+        }
+#ifdef DEBUG
+        std::cout << "Min Energy State: "
+        for (auto i = 0; i < solution.state.size(); ++i) {
+        std::cout << (int)buff[i] << " ";
+        }
+        std::cout << std::endl;
+#endif
+        for (auto i=0; i < solution.state.size(); ++i ) {
           solution.state[i] = buff[i];
         } 
       }
-      // for (auto i = 0; i < solution.state.size(); ++i) {
-      //   std::cout << (int)solution.state[i] << " ";
-      // }
-      //std::cout << std::endl;
+#ifdef DEBUG
+      std::cout << "Min Energy State: "
+      for (auto i = 0; i < solution.state.size(); ++i) {
+        std::cout << (int)solution.state[i] << " ";
+      }
+      std::cout << std::endl;
+#endif
       std::ofstream results_file(output_file);
       solution.save(results_file);
       results_file.close();
@@ -428,7 +449,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "Exception of unknown type!\n";
   }
 
-  if(rank == 0){
+  if (rank == 0) {
     std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
   }
 
