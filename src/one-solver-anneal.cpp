@@ -89,14 +89,14 @@ int main(int argc, char *argv[]) {
   const clock_t begin_time = clock();
 
   char machine_name[MPI_MAX_PROCESSOR_NAME];
-  int name_len=0;
-  int rank=0;
+  int name_len = 0;
+  int rank = 0;
   int root = 0; // Rank zero process
   int process_rank = 0;
-  int num_procs=0;
-  int size=0;
+  int num_procs = 0;
+  int size = 0;
   
-  long long int msg_size =0;
+  long long int msg_size = 0;
 
   std::string input_file;
   std::string output_file;
@@ -115,7 +115,6 @@ int main(int argc, char *argv[]) {
 
   qubo::QUBOModel<int, double> instance;
 
-  MPI_Status status;
 
   try {
     // Start MPI.
