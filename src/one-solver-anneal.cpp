@@ -115,7 +115,6 @@ int main(int argc, char *argv[]) {
 
   qubo::QUBOModel<int, double> instance;
 
-
   try {
     // Start MPI.
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS) {
@@ -135,7 +134,8 @@ int main(int argc, char *argv[]) {
     MPI_Get_processor_name(machine_name, &name_len);
 
     std::cout << " Node ID: " << machine_name << " Rank #" << rank;
-#endif    
+#endif  
+
     if (rank == 0) {
       po::options_description options("Allowed options");
       options.add_options()("help", "produce help message")(
@@ -405,7 +405,7 @@ int main(int argc, char *argv[]) {
 
     if ((process_rank != 0) && (rank == process_rank)) {
        auto state = solution.state; 
-       if (MPI_Send(state.data(), state.size(), MPI_CHAR, 0, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+       if (MPI_Send(state.data(), state.size(), MPI_CHAR, root, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
          throw std::runtime_error("MPI send failed\n");
         }
     }
@@ -413,7 +413,7 @@ int main(int argc, char *argv[]) {
     if (rank == 0) {
       char buff[32];
       if (process_rank != 0) {
-        if (MPI_Recv(&buff, 32, MPI_CHAR, process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+        if (MPI_Recv(&buff, 32, MPI_CHAR, process_rank, root, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
          throw std::runtime_error("MPI receive failed\n");
         }
 #ifdef DEBUG
@@ -427,6 +427,7 @@ int main(int argc, char *argv[]) {
           solution.state[i] = buff[i];
         } 
       }
+
 #ifdef DEBUG
       std::cout << "Min Energy State: "
       for (auto i = 0; i < solution.state.size(); ++i) {
