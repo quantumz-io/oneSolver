@@ -45,44 +45,44 @@ void construct_geometric_beta_schedule(std::vector<double> &schedule,
 
 qubo::Solution sycl_native_anneal(qubo::QUBOModel<int, double> instance, std::string device_type, std::string schedule_type, std::uint64_t seed, double beta_min, double beta_max, uint num_iter, uint num_tries)
 {
-    queue_ptr q_ptr;
+  queue_ptr q_ptr;
 
-    char machine_name[MPI_MAX_PROCESSOR_NAME];
-    int name_len=0;
-    int rank = 0;
+  char machine_name[MPI_MAX_PROCESSOR_NAME];
+  int name_len=0;
+  int rank = 0;
     
-    // Determine the rank number.
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  // Determine the rank number.
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    // Get the machine name.
-    MPI_Get_processor_name(machine_name, &name_len);
+  // Get the machine name.
+  MPI_Get_processor_name(machine_name, &name_len);
 
-    try {
-      q_ptr = queue_ptr(
-          new sycl::queue(*devices::construct_device_selector(device_type)));
-    } catch (std::runtime_error) {
-      std::cerr << "No devices of given type could be initialized."
-                << std::endl;
-    }
-  
-    std::cout << "Node ID [" << machine_name << "], " << "Rank [" << rank << "], " << "Using device: "
-              << q_ptr->get_device().get_info<sycl::info::device::name>()
+  try {
+    q_ptr = queue_ptr(
+        new sycl::queue(*devices::construct_device_selector(device_type)));
+  } catch (std::runtime_error) {
+    std::cerr << "No devices of given type could be initialized."
               << std::endl;
+  }
+  
+  std::cout << "Node ID [" << machine_name << "], " << "Rank [" << rank << "], " << "Using device: "
+            << q_ptr->get_device().get_info<sycl::info::device::name>()
+            << std::endl;
 
-    std::vector<double> beta_schedule(num_iter);
+  std::vector<double> beta_schedule(num_iter);
 
-    if (schedule_type == "linear") {
-      construct_linear_beta_schedule(beta_schedule, beta_min, beta_max,
-                                     num_iter);
-    } else {
-      construct_geometric_beta_schedule(beta_schedule, beta_min, beta_max,
-                                        num_iter);
-    }
+  if (schedule_type == "linear") {
+    construct_linear_beta_schedule(beta_schedule, beta_min, beta_max,
+                                   num_iter);
+  } else {
+    construct_geometric_beta_schedule(beta_schedule, beta_min, beta_max,
+                                      num_iter);
+  }
 
-    auto solution =
-        sa::anneal(instance, *q_ptr, beta_schedule, seed, num_iter, num_tries);
+  auto solution =
+      sa::anneal(instance, *q_ptr, beta_schedule, seed, num_iter, num_tries);
 
-    return solution;
+  return solution;
 }
 
 int main(int argc, char *argv[]) {
