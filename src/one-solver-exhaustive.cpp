@@ -32,7 +32,7 @@ qubo::Solution sycl_native(qubo::QUBOModel<int, double> instance, std::string de
   queue_ptr q_ptr;
 
   char machine_name[MPI_MAX_PROCESSOR_NAME];
-  int name_len=0;
+  int name_len = 0;
   int rank = 0;
 
   // Determine the rank number.
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
   char machine_name[MPI_MAX_PROCESSOR_NAME];
   int name_len = 0;
   int rank = 0;
-  int root = 0; // Rank zero process
+  const int root = 0; // Rank zero process
   int process_rank = 0;
   int num_procs = 0;
   int size = 0;
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
     std::cout << " Node ID: " << machine_name << " Rank #" << rank;
 #endif
 
-    if (rank == 0) {
+    if (rank == root) {
       po::options_description options("Allowed options");
       options.add_options()("help", "produce help message")(
         "input", po::value<std::string>(&input_file), "input file")(
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
       throw std::runtime_error("MPI broadcast failed\n");
     }
 
-    if (rank != 0) {
+    if (rank != root) {
       msg_buff.resize(msg_size);
     }
 
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
       throw std::runtime_error("MPI broadcast failed\n");
     }
     
-    if (rank != 0) {
+    if (rank != root) {
       if (msg_buff.size() > 0) {
       std::istringstream iss(std::string(msg_buff.data(), msg_buff.size()));
 #ifdef DEBUG
@@ -247,23 +247,22 @@ int main(int argc, char *argv[]) {
         }
         end_state = states_count;
 
-      ranges_buf[i*2] = start_state;
-      ranges_buf[i*2+1] = end_state;
+        ranges_buf[i*2] = start_state;
+        ranges_buf[i*2+1] = end_state;
 #ifdef DEBUG
-      std::cout << ranges_buf[i*2];
-      std::cout << ", ";
-      std::cout << ranges_buf[i*2+1] << std::endl;
+        std::cout << ranges_buf[i*2];
+        std::cout << ", ";
+        std::cout << ranges_buf[i*2+1] << std::endl;
 #endif
       }
     }
 
-    if (MPI_Scatter(ranges_buf, 2, MPI_UNSIGNED_LONG,recv_arr, 2, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+    if (MPI_Scatter(ranges_buf, 2, MPI_UNSIGNED_LONG, recv_arr, 2, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
       throw std::runtime_error("MPI scatter failed\n");
     }
 
     start_state = recv_arr[0];
     end_state = recv_arr[1];
-
 
     auto solution = sycl_native(instance, device_type, start_state, end_state);
 
@@ -271,14 +270,15 @@ int main(int argc, char *argv[]) {
     std::cout << "Solution: " << solution.energy << std::endl;
 #endif
     
-    double *energy_buff = new double[num_procs];
+    // double *energy_buff = new double[num_procs];
+    std::unique_ptr<double> energy_buff_ptr(new double[num_procs]);
 
-    if (MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
+    if (MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff_ptr.get(), 1, MPI_DOUBLE, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
       throw std::runtime_error("MPI gather failed\n");
     }
-    
-    if (rank == 0) {
-       std::vector<double> energies(&energy_buff[0], &energy_buff[num_procs]);
+
+    if (rank == root) {
+       std::vector<double> energies(&energy_buff_ptr.get()[0], &energy_buff_ptr.get()[num_procs]);
        auto min_energy = std::min_element(energies.begin(), energies.end());
        auto min_idx_energy = std::distance(energies.begin(), min_energy);
 #ifdef DEBUG
@@ -292,21 +292,19 @@ int main(int argc, char *argv[]) {
     if (MPI_Bcast(&process_rank, 1, MPI_INT, root, MPI_COMM_WORLD) != MPI_SUCCESS) {
       throw std::runtime_error("MPI broadcast failed\n");
     }
-
-
     
-    if ((process_rank !=0) && (rank == process_rank)) {
-       auto state = solution.state; 
-       if (MPI_Send(state.data(), state.size(), MPI_CHAR, root, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
-         throw std::runtime_error("MPI send failed\n");
-        }
+    if ((process_rank != root) && (rank == process_rank)) {
+      auto state = solution.state; 
+      if (MPI_Send(state.data(), state.size(), MPI_CHAR, root, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+        throw std::runtime_error("MPI send failed\n");
+      }
     }
 
-    if (rank == 0) {
+    if (rank == root) {
       char buff[32];
-      if (process_rank != 0) {
+      if (process_rank != root) {
         if (MPI_Recv(&buff, 32, MPI_CHAR, process_rank, root, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
-         throw std::runtime_error("MPI receive failed\n");
+          throw std::runtime_error("MPI receive failed\n");
         }
 #ifdef DEBUG
         std::cout << "Min Energy State: "       
@@ -315,7 +313,7 @@ int main(int argc, char *argv[]) {
         }
         std::cout << std::endl;
 #endif
-        for (auto i=0; i < solution.state.size(); ++i ) {
+        for (auto i = 0; i < solution.state.size(); ++i ) {
           solution.state[i] = buff[i];
         } 
       }
@@ -331,17 +329,15 @@ int main(int argc, char *argv[]) {
       solution.save(results_file);
       results_file.close();
     }
-
-    delete [] energy_buff;
       
   } catch (std::exception &e) {
     std::cerr << "error: " << e.what() << "\n";
-    return 1;
+    return -1;
   } catch (...) {
     std::cerr << "Exception of unknown type!\n";
   }
 
-  if (rank == 0) {
+  if (rank == root) {
     delete [] ranges_buf;
     std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
   }
