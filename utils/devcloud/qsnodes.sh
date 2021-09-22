@@ -1,6 +1,39 @@
 usage()
 {
-	echo "usage help"
+echo "
+NAME
+       qsnodes.sh - check availiblity and allocate nodes in qsub chain command 
+
+SYNOPSIS
+       ./qsnodes.sh [OPTION] ...
+
+DESCRIPTION
+      Script allows to check availible computational nodes on the Intel DevCloud
+      computational resources. This script could be used with qsub resource manger
+      with the using backticks feature of linux shell.
+
+      Generally the script could be called with its own arguments in backticks
+      and its output is redirected to qsub utility as its arguments.
+
+      Options for the script itself are not obligatory but the options for the
+      qsub manager have to be after the script options.
+
+      The scripts of options:
+      
+       -n NUM, --nodes NUM
+              the NUM is the number of nodes which should be asked for allocation
+
+       -g, --gpu
+              when the flag is present the nodes have to had graphics cards
+
+       -h, --help
+             display this help and exit
+
+SEE ALSO
+      qsub utiity for submitting PBS job
+      Documentation availible at:
+      <http://docs.adaptivecomputing.com/torque/4-0-2/Content/topics/commands/qsub.htm>
+"
 }
 
 if [[ $# -eq 0 ]]; then
@@ -9,9 +42,6 @@ if [[ $# -eq 0 ]]; then
 fi
 
 gpu=0
-#echo "Arguments are: $@"
-#argc="$@"
-remargs=()
 
 for arg in $@;
 do
@@ -21,7 +51,7 @@ do
         neednodes=$1
 	shift
 	;;
-	-g|--gpu)
+    -g|--gpu)
 	gpu=1
 	shift
 	;;
@@ -33,10 +63,8 @@ do
 done
 
 if [ "$gpu" = "1" ]; then
-#    echo "Free nodes with gpu"
     freenodes=$(pbsnodes -l free :gpu | awk '{print $1}')
 else
-#    echo "Free nodes without gpu"
     freenodes=$(pbsnodes -l free | awk '{print $1}')
 fi
 declare -a listofnodes=( $freenodes )
@@ -45,8 +73,6 @@ nnodes=${#listofnodes[@]}
 randomnode=$((RANDOM * ($nnodes + 1) /37668))
 
 rnodename=${listofnodes[$randomnode]}
-#echo "name of node: $rnodename"
-
 
 if (( $neednodes  <= 0 )); then
     echo "Bad value of nodes number"
@@ -63,7 +89,6 @@ elif (( $neednodes > 1 )) && (( $neednodes <= $nnodes )) && (( $gpu == 0 )); the
 	endnode=$(($randomnode + $neednodes - 1))
     fi
     for ((i=$beginnode; i<=$endnode; i++ )); do
-#	echo "${listofnodes[$i]}"
 	combine+=${listofnodes[$i]}+
     done
     echo "-l nodes=${combine%?}:ppn=2"
@@ -76,7 +101,6 @@ elif (( $neednodes > 1 )) &&  (( $neednodes <= $nnodes )) && (( $gpu == 1 )); th
 	endnode=$(($randomnode + $neednodes - 1))
     fi
     for ((i=$beginnode; i<=$endnode; i++ )); do
-#	echo "${listofnodes[$i]}"
 	combine+=${listofnodes[$i]}+
     done
     echo "-l nodes=${combine%?}:gpu:ppn=2"

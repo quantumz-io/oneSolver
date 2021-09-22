@@ -1,6 +1,42 @@
 usage()
 {
-	echo "usage help"
+echo "
+NAME
+       nodes.sh - check availiblity, show command and allocate nodes 
+
+SYNOPSIS
+       ./nodes.sh [OPTION] [OPTION FOR QSUB]...
+
+DESCRIPTION
+      Script allows to check availible computational nodes on the Intel DevCloud
+      computational resources. This script has its own set of options and allows
+      to redirect additional options to the qsub resource manager.
+
+      Options for the script itself are not obligatory but the options for the
+      qsub manager have to be after the script options.
+
+      The scripts of options:
+      
+       -n NUM, --nodes NUM
+              the NUM is the number of nodes which should be asked for allocation
+
+       -g, --gpu
+              when the flag is present the nodes have to had graphics cards
+
+       -a, --alloc
+              when the flat is present the script should try to allocate
+              the required number of nodes
+	      
+       -h, --help
+             display this help and exit
+
+The rest options are redirected without any changes on the to the qsub resource manager.
+
+SEE ALSO
+      qsub utiity for submitting PBS job
+      Documentation availible at:
+      <http://docs.adaptivecomputing.com/torque/4-0-2/Content/topics/commands/qsub.htm>
+"
 }
 
 if [[ $# -eq 0 ]]; then
@@ -10,9 +46,6 @@ fi
 
 gpu=0
 allc=0
-#echo "Arguments are: $@"
-#argc="$@"
-remargs=()
 
 for arg in $@;
 do
@@ -37,13 +70,9 @@ do
      esac
 done
 
-echo "Remainded args: $@" 
-
 if [ "$gpu" = "1" ]; then
-    echo "Free nodes with gpu"
     freenodes=$(pbsnodes -l free :gpu | awk '{print $1}')
 else
-    echo "Free nodes without gpu"
     freenodes=$(pbsnodes -l free | awk '{print $1}')
 fi
 declare -a listofnodes=( $freenodes )
@@ -52,29 +81,18 @@ nnodes=${#listofnodes[@]}
 randomnode=$((RANDOM * ($nnodes + 1) /37668))
 
 rnodename=${listofnodes[$randomnode]}
-echo "name of node: $rnodename"
-
 
 if (( $neednodes  <= 0 )); then
     echo "Bad value of nodes number"
 elif (( $neednodes == 1 )) && (( $gpu == 0 )) && (( allc == 0 )); then
-    echo "needed one node"
-    echo "availble nodee = $rnodename"
-    echo "allocation command: qsub -l nodes=$rnodename:ppn=2"
+    echo "To allocate run command: qsub -l nodes=$rnodename:ppn=2"
 elif (( $neednodes == 1 )) && (( $gpu == 0 )) && (( allc == 1 )); then
-    echo "needed one node"
-    echo "availble nodee = $rnodename"
-    echo "allocation command: qsub -l nodes=$rnodename:ppn=2"
-    qsub -I -l nodes=$rnodename:ppn=2 -$@
+    qsub -l nodes=$rnodename:ppn=2 $@
 elif (( $neednodes == 1 )) && (( $gpu == 1 )) && (( allc == 0 )); then
-    echo "One node without gpu"
-    echo "allocation command: qsub -l nodes=$rnodename:gpu:ppn=2"
+    echo "To allocate run command: qsub -l nodes=$rnodename:gpu:ppn=2"
 elif (( $neednodes == 1 )) && (( $gpu == 1 )) && (( allc == 1 )); then
-    echo "One node with gpu"
-    echo "allocation command: qsub -l nodes=$rnodename:gpu:ppn=2"
-    qsub -I -l nodes=$rnodename:gpu:ppn=2
+    qsub -l nodes=$rnodename:gpu:ppn=2 $@
 elif (( $neednodes > 1 )) && (( $neednodes <= $nnodes )) && (( $gpu == 0 )) && (( allc == 0 )); then
-    echo "needed more than one node"
     if (( $randomnode - $neednodes < 0 )) || (( $randomnode + $neednodes > $nnodes )); then
 	beginnode=0
 	endnode=$neednodes
@@ -82,15 +100,11 @@ elif (( $neednodes > 1 )) && (( $neednodes <= $nnodes )) && (( $gpu == 0 )) && (
 	beginnode=$randomnode
 	endnode=$(($randomnode + $neednodes - 1))
     fi
-    echo "Begin: $beginnode, end: $endnode"
     for ((i=$beginnode; i<=$endnode; i++ )); do
-	echo "${listofnodes[$i]}"
 	combine+=${listofnodes[$i]}+
     done
-    echo "Combined: ${combine%?}"
-    echo "allocatin command: qsub -l ${combine%?}:ppn=2"
+    echo "To allocate run command: qsub -l nodes=${combine%?}:ppn=2"
 elif (( $neednodes > 1 )) && (( $neednodes <= $nnodes )) && (( $gpu == 0 )) && (( allc == 1 )); then
-    echo "needed more than one node"
     if (( $randomnode - $neednodes < 0 )) || (( $randomnode + $neednodes > $nnodes )); then
 	beginnode=0
 	endnode=$neednodes
@@ -98,16 +112,11 @@ elif (( $neednodes > 1 )) && (( $neednodes <= $nnodes )) && (( $gpu == 0 )) && (
 	beginnode=$randomnode
 	endnode=$(($randomnode + $neednodes - 1))
     fi
-    echo "Begin: $beginnode, end: $endnode"
     for ((i=$beginnode; i<=$endnode; i++ )); do
-	echo "${listofnodes[$i]}"
 	combine+=${listofnodes[$i]}+
     done
-    echo "Combined: ${combine%?}"
-    echo "allocatin command: qsub -l nodes=${combine%?}:ppn=2"
-    qsub -I -l nodes=${combine%?}:ppn=2
-elif (( $neednodes > 1 )) &&  (( $neednodes <= $nnodes )) && (( $gpu == 1 )) && ((allc == 0 )); then
-    echo "needed more than one node"
+    qsub -l nodes=${combine%?}:ppn=2 $@
+ elif (( $neednodes > 1 )) &&  (( $neednodes <= $nnodes )) && (( $gpu == 1 )) && ((allc == 0 )); then
     if (( $randomnode - $neednodes < 0 )) || (( $randomnode + $neednodes > $nnodes )); then
 	beginnode=0
 	endnode=$neednodes
@@ -115,15 +124,11 @@ elif (( $neednodes > 1 )) &&  (( $neednodes <= $nnodes )) && (( $gpu == 1 )) && 
 	beginnode=$randomnode
 	endnode=$(($randomnode + $neednodes - 1))
     fi
-    echo "Begin: $beginnode, end: $endnode"
     for ((i=$beginnode; i<=$endnode; i++ )); do
-	echo "${listofnodes[$i]}"
 	combine+=${listofnodes[$i]}+
     done
-    echo "Combined: ${combine%?}"
-    echo "allocatin command: qsub -l nodes=${combine%?}:gpu:ppn=2"
+    echo "To allocate run command: qsub -l nodes=${combine%?}:gpu:ppn=2"
 elif (( $neednodes > 1 )) &&  (( $neednodes <= $nnodes )) && (( $gpu == 1 )) && ((allc == 1 )); then
-    echo "needed more than one node"
     if (( $randomnode - $neednodes < 0 )) || (( $randomnode + $neednodes > $nnodes )); then
 	beginnode=0
 	endnode=$neednodes
@@ -131,16 +136,13 @@ elif (( $neednodes > 1 )) &&  (( $neednodes <= $nnodes )) && (( $gpu == 1 )) && 
 	beginnode=$randomnode
 	endnode=$(($randomnode + $neednodes - 1))
     fi
-    echo "Begin: $beginnode, end: $endnode"
     for ((i=$beginnode; i<=$endnode; i++ )); do
-	echo "${listofnodes[$i]}"
 	combine+=${listofnodes[$i]}+
     done
-    echo "Combined: ${combine%?}"
-    echo "allocatin command: qsub -l nodes=${combine%?}:gpu:ppn=2"
-    qsub -I -l nodes=${combine%?}:gpu:ppn=2
+    echo "To allocate run command: qsub -l nodes=${combine%?}:gpu:ppn=2"
+    qsub -l nodes=${combine%?}:gpu:ppn=2 $@
 elif (( $neednodes > $nnodes )); then
-    echo "To many nodes. Number of availible nodes: $nnodes"
+    echo "To many nodes requested. Number of availible nodes: $nnodes"
 else
     echo "Something went wrong"
 fi
