@@ -34,11 +34,12 @@ using queue_ptr = std::unique_ptr<sycl::queue>;
  * @param Start state in the solution space.
  * @param End state in the solution space.
  *
- * @returns solution to the given QUBO problem.
+ * @returns solution to the given QUBO problem and acclerator device name.
  */
-qubo::Solution sycl_native(qubo::QUBOModel<int, double> instance, std::string device_type, ulong start_state, ulong end_state)
+std::tuple<qubo::Solution, std::string> sycl_native(qubo::QUBOModel<int, double> instance, std::string device_type, ulong start_state, ulong end_state)
 {
   queue_ptr q_ptr;
+  std::string accl_device_name;
   
   try {
     q_ptr = queue_ptr(
@@ -47,14 +48,15 @@ qubo::Solution sycl_native(qubo::QUBOModel<int, double> instance, std::string de
     std::cerr << "No devices of given type could be initialized."
               << std::endl;
   }
-
-  std::cout << "Using device: "
-            << q_ptr->get_device().get_info<sycl::info::device::name>()
-            << std::endl;
+ 
+  accl_device_name = q_ptr->get_device().get_info<sycl::info::device::name>();
+  // std::cout << "Using device: "
+  //           << q_ptr->get_device().get_info<sycl::info::device::name>()
+  //           << std::endl;
 
   auto solution = exhaustive::solve(*q_ptr, instance, start_state, end_state);
 
-  return solution;
+  return {solution, accl_device_name} ;
 }
 
 /*!
@@ -265,8 +267,33 @@ int main(int argc, char *argv[]) {
     start_state = recv_arr[0];
     end_state = recv_arr[1];
 
-    std::cout << "Node ID [" << machine_name << "], " << "Rank [" << rank << "], " << std::flush;
-    auto solution = sycl_native(instance, device_type, start_state, end_state);
+    auto [solution, accl_device_name] = sycl_native(instance, device_type, start_state, end_state);
+
+    if(rank == root_rank){
+      //std::unique_ptr<char> log_buff_ptr(new char[100]);
+      MPI_Status status;
+      int msg_length;
+      
+      //char log_buff_ptr[100];
+      std::cout << "Node ID [" << machine_name << "], " << "Rank [" << rank << "], " << "Using device: " << accl_device_name << std::endl;
+      for(auto rank_indx = 1; rank_indx < num_procs; ++rank_indx){
+        MPI_Probe(rank_indx, 1, MPI_COMM_WORLD, &status);
+        MPI_Get_count(&status, MPI_CHAR, &msg_length);
+
+        std::unique_ptr<char> log_buff_ptr(new char[msg_length]{});
+        std::cout << log_buff_ptr.get();
+        //std::cout << "rank_indx: " << rank_indx << std::endl;
+        MPI_Recv(log_buff_ptr.get(), msg_length, MPI_CHAR, rank_indx, 1 , MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        std::string log_msg(log_buff_ptr.get());
+        //std::cout << log_buff_ptr.get() << std::endl;
+        std::cout << log_msg;
+      }
+    }else{
+      std::ostringstream log_stream;
+      log_stream << "Node ID [" << machine_name << "], " << "Rank [" << rank << "], " << "Using device: " << accl_device_name << std::endl;
+      MPI_Send(log_stream.str().c_str(), log_stream.str().size(), MPI_CHAR, root_rank, 1, MPI_COMM_WORLD);
+    }
+    
 
 #ifdef DEBUG
     std::cout << "Solution: " << solution.energy << std::endl;
@@ -304,7 +331,7 @@ int main(int argc, char *argv[]) {
     if (rank == root_rank) {
       char buff[32];
       if (min_energy_process_rank != root_rank) {
-        if (MPI_Recv(&buff, 32, MPI_CHAR, min_energy_process_rank, root_rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+        if (MPI_Recv(&buff, 32, MPI_CHAR, min_energy_process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
           throw std::runtime_error("MPI receive failed\n");
         }
 #ifdef DEBUG
