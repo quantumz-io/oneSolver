@@ -428,6 +428,7 @@ int main(int argc, char *argv[]) {
         MPI_Get_count(&status, MPI_CHAR, &msg_length);
 
         std::unique_ptr<char> log_buff_ptr(new char[msg_length]{});
+        //std::fill(log_buff_ptr.get(), log_buff_ptr.get() + msg_length, 0);
         std::cout << log_buff_ptr.get();
         //std::cout << "rank_indx: " << rank_indx << std::endl;
         MPI_Recv(log_buff_ptr.get(), msg_length, MPI_CHAR, rank_indx, 1 , MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -441,14 +442,14 @@ int main(int argc, char *argv[]) {
       MPI_Send(log_stream.str().c_str(), log_stream.str().size(), MPI_CHAR, root_rank, 1, MPI_COMM_WORLD);
     }
 
-    double *energy_buff = new double[num_procs];
+    std::unique_ptr<double> energy_buff_ptr(new double[num_procs]);
 
-    if (MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff, 1, MPI_DOUBLE, root_rank, MPI_COMM_WORLD) != MPI_SUCCESS) {
+    if (MPI_Gather(&solution.energy, 1, MPI_DOUBLE, energy_buff_ptr.get(), 1, MPI_DOUBLE, root_rank, MPI_COMM_WORLD) != MPI_SUCCESS) {
       throw std::runtime_error("MPI gather failed\n");
     }
 
     if (rank == root_rank) {
-       std::vector<double> energies(&energy_buff[0], &energy_buff[num_procs]);
+       std::vector<double> energies(&energy_buff_ptr.get()[0], &energy_buff_ptr.get()[num_procs]);
        auto min_energy = std::min_element(energies.begin(), energies.end());
        auto min_idx_energy = std::distance(energies.begin(), min_energy);
 #ifdef DEBUG
@@ -499,8 +500,6 @@ int main(int argc, char *argv[]) {
       solution.save(results_file);
       results_file.close();
     }
-
-    delete [] energy_buff;
 
   } catch (std::exception &e) {
     std::cerr << "error: " << e.what() << "\n";

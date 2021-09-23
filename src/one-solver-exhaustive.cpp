@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
   ulong start_state = 0;
   ulong end_state = 0;
 
-  ulong *ranges_buf = NULL;
+  ulong *ranges_buff = NULL;
   ulong recv_arr[2];
 
   std::string input_file;
@@ -234,7 +234,7 @@ int main(int argc, char *argv[]) {
     if (rank == root_rank) {
       // Divide task to each node and let sycl decide the distribution of task on each node.
       auto n_bits = instance.get_nodes();
-      ranges_buf = new ulong[num_procs*2];
+      ranges_buff = new ulong[num_procs*2];
       // note that all the variables related to states have to be unsigned 64 bit integers
       ulong n_states = 1 << n_bits; 
       ulong states_per_node = n_states / num_procs;
@@ -252,17 +252,17 @@ int main(int argc, char *argv[]) {
         }
         end_state = states_count;
 
-        ranges_buf[i*2] = start_state;
-        ranges_buf[i*2+1] = end_state;
+        ranges_buff[i*2] = start_state;
+        ranges_buff[i*2+1] = end_state;
 #ifdef DEBUG
-        std::cout << ranges_buf[i*2];
+        std::cout << ranges_buff[i*2];
         std::cout << ", ";
-        std::cout << ranges_buf[i*2+1] << std::endl;
+        std::cout << ranges_buff[i*2+1] << std::endl;
 #endif
       }
     }
 
-    if (MPI_Scatter(ranges_buf, 2, MPI_UNSIGNED_LONG, recv_arr, 2, MPI_UNSIGNED_LONG, root_rank, MPI_COMM_WORLD) != MPI_SUCCESS) {
+    if (MPI_Scatter(ranges_buff, 2, MPI_UNSIGNED_LONG, recv_arr, 2, MPI_UNSIGNED_LONG, root_rank, MPI_COMM_WORLD) != MPI_SUCCESS) {
       throw std::runtime_error("MPI scatter failed\n");
     }
 
@@ -368,7 +368,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (rank == root_rank) {
-    delete [] ranges_buf;
+    delete [] ranges_buff;
     std::cout << "Calculation time [s]: "<< float( clock () - begin_time ) /  CLOCKS_PER_SEC << "\n";
   }
 
