@@ -29,6 +29,7 @@ using queue_ptr = std::unique_ptr<sycl::queue>;
 
 /*!
  * @brief Compute QUBO solution in a give solution space on a given device.
+ *
  * @param Instance of the proble to solve.
  * @param Accelerator device type.
  * @param Start state in the solution space.
@@ -61,6 +62,7 @@ std::tuple<qubo::Solution, std::string> sycl_native(qubo::QUBOModel<int, double>
 
 /*!
  * @brief Parse command line.
+ *
  * @param argument count.
  * @param arguments array.
  *

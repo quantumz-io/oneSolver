@@ -27,6 +27,7 @@ using queue_ptr = std::unique_ptr<sycl::queue>;
 
 /*!
  * @brief Constructs a linear beta schedule.
+ *
  * @param a reference to a vector for storing the schedule
  * @param minimum value of beta in the annealing schedule.
  * @param maximum value of beta in the annealing schedule.
@@ -44,6 +45,7 @@ void construct_linear_beta_schedule(std::vector<double> &schedule,
 
 /*!
  * @brief Constructs a geometric beta schedule.
+ *
  * @param a reference to a vector for storing the schedule
  * @param minimum value of beta in the annealing schedule.
  * @param maximum value of beta in the annealing schedule.
@@ -62,6 +64,7 @@ void construct_geometric_beta_schedule(std::vector<double> &schedule,
 
 /*!
  * @brief Compute QUBO solution in a give solution space on a given device.
+ *
  * @param Instance of the proble to solve.
  * @param Accelerator device type.
  * @param beta schedule type linear or geometric.
