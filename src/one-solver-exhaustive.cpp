@@ -64,7 +64,7 @@ std::tuple<qubo::Solution, std::string> sycl_native(qubo::QUBOModel<int, double>
  * @param argument count.
  * @param arguments array.
  *
- * @returns returns input_file, output_file and device_type.
+ * @returns returns input file name, output file name and device type.
  */
 std::tuple<std::string, std::string, std::string> parse_cmd_line(int argc, char *argv[])
 {

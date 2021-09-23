@@ -25,6 +25,15 @@ namespace sycl = cl::sycl;
 
 using queue_ptr = std::unique_ptr<sycl::queue>;
 
+/*!
+ * @brief Constructs a linear beta schedule.
+ * @param a reference to a vector for storing the schedule
+ * @param minimum value of beta in the annealing schedule.
+ * @param maximum value of beta in the annealing schedule.
+ * @param number of iterations of the algorithm.
+ *
+ * @returns returns schedule.
+ */
 void construct_linear_beta_schedule(std::vector<double> &schedule,
                                     double beta_min, double beta_max,
                                     uint num_iter) {
@@ -33,6 +42,14 @@ void construct_linear_beta_schedule(std::vector<double> &schedule,
   }
 }
 
+/*!
+ * @brief Constructs a geometric beta schedule.
+ * @param a reference to a vector for storing the schedule
+ * @param minimum value of beta in the annealing schedule.
+ * @param maximum value of beta in the annealing schedule.
+ * @param number of iterations of the algorithm.
+ *
+ */
 void construct_geometric_beta_schedule(std::vector<double> &schedule,
                                        double beta_min, double beta_max,
                                        uint num_iter) {
@@ -95,7 +112,8 @@ std::tuple<qubo::Solution, std::string> sycl_native_anneal(qubo::QUBOModel<int, 
  * @param argument count.
  * @param arguments array.
  *
- * @returns returns input_file, output_file, device_type, beta_min, beta_max, num_iter and num_tries.
+ * @returns returns input file name, output file name, device type, beta_min, beta_max, 
+ *                  number of iteration and number of tries.
  */
 std::tuple<std::string, std::string, std::string, std::string, double, double, uint, uint> parse_cmd_line_anneal(int argc, char *argv[])
 {
