@@ -1,14 +1,14 @@
 #!/bin/bash
 
-infile=benchmarks/exhaustive_search/examples/csp13.qubo
-outfile=csp13.csv
+INFILE=benchmarks/exhaustive_search/examples/csp13.qubo
+OUTFILE=csp13.csv
 MPIPROC=4
 WITHGPU=false
 
 if [ "$WITHGPU" = true ]; then
-    mpirun -n $MPIPROC ./build/src/one-solver-anneal --device-type gpu --input $infile --output $outfile
+    mpirun -n $MPIPROC ./build/src/one-solver-anneal --device-type gpu --input $INFILE --output $OUTFILE
 elif [ "$WITHGPU" = false ]; then
-    mpirun -n $MPIPROC ./build/src/one-solver-anneal --input $infile --output $outfile
+    mpirun -n $MPIPROC ./build/src/one-solver-anneal --input $INFILE --output $OUTFILE
 else
     echo "Unknown device option"
 fi
