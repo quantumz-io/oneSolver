@@ -86,6 +86,10 @@ Outputs: Lowest Energy and Graph G* of size n as file
 8. save_lowest_energy_and_state_to_file;
 ```
 # An introduction to oneSolver 2.0
+oneSolver 2.0 adapts the exhaustive search and annealing to a distributed environment 
+using MPI and Boost C++ library. For exhaustive search the solution space is first 
+divided at node scale and then again at the device scale to take the advantage 
+of dissimilar hardware using MPI and SYCL runtime API.
 
 # Performance differences between oneSolver 1.0 and oneSolver 2.0 
 # Description of running oneSolver 2.0 on a cluster
