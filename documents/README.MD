@@ -25,11 +25,15 @@ Such exhaustive solvers are limited to small problem sizes $(N \leq 50)$, they c
 Simulated annealing is a randomized search method for optimization problems and it is inspired by Statistical mechanics. It obtains its name from the heating-cooling methodology of metal annealing. This Monte Carlo search method tries to improve a solution by walking randomly in the space of possible solutions and each move is probabilistically dependent on a parameter called "temperature". At high temperature, the random walk is unbiased and the moves are uniformly distributed over the whole space of solutions; as the temperature decreases, each move of random walk lead towards more likely solutions with a better objective value, and the distribution is more and more biased towards the optimal solution. The sequence of temperatures and lengths of time for which they are maintained is called *annealing schedule*.
 
 ## Parallel and distributed solver for Ising models
-Parallel solvers on a single node with multiple processing units process a task in parallel by breaking the task into small pieces and assign each subtask to each process. In the particular case of exhaustive search the solution state space is divided into equal chunks and provided to each process as an initial parameter. Wheras in case of Simulated annealing, each process searches the state space for a solution starting from a randomly generated state.
+Parallel solvers on a single node with multiple processing units process a task in parallel by breaking the task into small pieces and assign each subtask to each process. In the particular case of exhaustive search, the solution state space is divided into equal chunks and provided to each process as an initial parameter. Whereas in the case of Simulated annealing, each process searches the state space for a solution starting from a randomly generated state.
 
-Distributed solvers solve the taks on multiple nodes with multiple processing units by breaking the task into small pieces and assing each subtask to each process that are spreas across multiple nodes. In the particular case of exhaustive search the solution state space is divided into equal chunks and provided to each process as an initial parameter using MPI library. The final result is gathered from each process to compute the final solution. Wheras in case of Simulated annealing, each process searches the state space for a solution starting from a randomly generated state. The main process provides a unique seed to all other process to generate unique starting space. 
+Distributed solvers solve the tasks on multiple nodes with multiple processing units by breaking the task into small pieces and assign each subtask to each process that are spread across multiple nodes. In the particular case of exhaustive search, the solution state space is divided into equal chunks and provided to each process as an initial parameter using the MPI library. The final result is gathered from each process to compute the final solution. Whereas in the case of Simulated annealing, each process searches the state space for a solution starting from a randomly generated state. The main process provides a unique seed to all other processes to generate a unique starting space. 
 
-The Exhaustive Search version of one solver 1.0  implements the following algorithm:
+
+# An introduction to oneSolver 1.0
+One solver 1.0 is a parallel implementation of Exhaustive Search and Simulated annealing algorithms that uses oneAPI Data Parallel C++ (DPC++) to define data-parallel functions and offload them to devices using The Khronos Group SYCL runtime API. The oneSolever 1.0 can execute on device accelerators such as CPU, GUP, etc.
+
+The Exhaustive Search version of one solver 1.0 implements the following algorithm:
 
 ```{r, eval=FALSE}
 Inputs: Graph G of size n as a file, device type
@@ -81,6 +85,7 @@ Outputs: Lowest Energy and Graph G* of size n as file
 7. select_lowest_energy_and_state(local_best_energy,local_state_best);
 8. save_lowest_energy_and_state_to_file;
 ```
+# An introduction to oneSolver 2.0
 
 # Performance differences between oneSolver 1.0 and oneSolver 2.0 
 # Description of running oneSolver 2.0 on a cluster
