@@ -29,10 +29,6 @@ Parallel solvers on a single node with multiple processing units process a task 
 
 Distributed solvers solve the taks on multiple nodes with multiple processing units by breaking the task into small pieces and assing each subtask to each process that are spreas across multiple nodes. In the particular case of exhaustive search the solution state space is divided into equal chunks and provided to each process as an initial parameter using MPI library. The final result is gathered from each process to compute the final solution. Wheras in case of Simulated annealing, each process searches the state space for a solution starting from a randomly generated state. The main process provides a unique seed to all other process to generate unique starting space. 
 
-
-# An introduction to oneSolver 1.0
-One solver 1.0 is a parallel implementation of Exhaustive Search and Simulated annealing algorithms that uses oneAPI Data Parallel C++ (DPC++) to define data parallel functions and ofload them to devices using The Khronos Group SYCL runtime API. The oneSolever 1.0 can execute on device accelerators such as CPU, GUP, etc.
-
 The Exhaustive Search version of one solver 1.0  implements the following algorithm:
 
 ```{r, eval=FALSE}
@@ -44,19 +40,47 @@ Outputs: Lowest Energy and Graph G* of size n as file
 3. num_threads = get_compute_units_for_selected_device;
 4. states_per_thread = n_states / num_threads; // divide the search space 
 5. assign local_start_state and local_end_state for each thread
-6. call_parallel_for id < num_threads
+6. call_parallel_for id < num_threads do
       local_best_energy = 0;
       local_state_best = 0;
-      for state = local_start_state to local_end_state
-          energy = calculate_energy(state);
-          if energy < best_energy
+      for state = local_start_state to local_end_state do
+          energy = calculate_energy(state, QUBOModel);
+          if energy < local_best_energy
              local_best_energy = energy
              local_state_best = state
 7. select_lowest_energy_and_state(local_best_energy,local_state_best );
 8. save_lowest_energy_and_state_to_file;
 ```
-The Simulated annealing version of one solver 1.0  implements the following 
-algorithm:
+The Simulated annealing version of one solver 1.0  implements the following algorithm:
+```{r, eval=FALSE}
+Inputs: Graph G of size n as a file, device type, beta_min, beta_max, schedule (geometric/linear), num_iter, num-tries
+Outputs: Lowest Energy and Graph G* of size n as file
+
+1. Read_G_to_QUBOModel; // read graph to an internal QUBOModel format
+2. Select_device; // select the specified device (cpu, gpu, host)
+3. if schedule_type == geometric
+      shedule = prepare_geometric_schedule(beta_min, beta_max, num_iter);
+    else if schedule_type == geometric
+      shedule = prepare_linear_schedule(beta_min, beta_max, num_iter);
+3. num_threads = get_compute_units_for_selected_device;
+4. states_per_thread = n_states / num_threads; // divide the search space;
+5. assign schedule for each thread
+6. call_parallel_for id < num-tries do
+      engine = create_philox4x32x10_engine(seed, id);
+      random = random_number_generator(engine)
+      local_best_state= local_current_state = random_state_generate(random);
+      local_best_energy = calculate_energy(local_start_state, QUBOModel);
+      
+      for iter = 0 to num_iter do
+          beta_schedule = schedule[iter];
+          local_current_state = flip_radom_bit_in_current_state(random); 
+          energy = calculate_energy(local_current_state, QUBOModel);
+          if energy < local_best_energy
+             local_best_energy = energy
+             local_state_best = local_current_state
+7. select_lowest_energy_and_state(local_best_energy,local_state_best);
+8. save_lowest_energy_and_state_to_file;
+```
 
 # Performance differences between oneSolver 1.0 and oneSolver 2.0 
 # Description of running oneSolver 2.0 on a cluster
