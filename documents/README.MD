@@ -89,13 +89,21 @@ Outputs: Lowest Energy and Graph G* of size n as file
 7. save_lowest_energy_and_state_to_file
 ```
 ## An introduction to oneSolver 2.0
-The oneSolver 2.0 adapts the exhaustive search and annealing to a distributed environment using MPI, oneApi, and Boost C++ library. For exhaustive search, the solution space is first divided at node scale and then again at the device scale to take the advantage of dissimilar hardware using MPI and SYCL runtime API. In annealing, the qubo problem along with a unique seed is distributed to every node and then at each node, the problem is distributed over the selected device (CPU, GPU, host) to effectively increase the number of trajectories and thus effectively increasing the accuracy of the searched solution.
+The oneSolver 2.0 adapts the exhaustive search and annealing to a distributed 
+environment using MPI, oneApi, and Boost C++ library. For exhaustive search, 
+the solution space is first divided at node scale and then again at the device 
+scale to take the advantage of dissimilar hardware using MPI and SYCL runtime API. 
+In annealing, the qubo problem along with a unique seed is distributed to every 
+node and then at each node, the problem is distributed over the selected device 
+(CPU, GPU, host) to effectively increase the number of trajectories and thus 
+effectively increasing the accuracy of the searched solution.
 
 # 4. Performance differences between oneSolver 1.0 and oneSolver 2.0 
 Performance analysis of oneSolve 1.0 and oneSolver 2.0. (TBD)
 
 # 5. Description of running oneSolver 2.0 on a cluster
-The oneSolver 2.0 can either be executed on the Intel(R) DevCloud or on any cluster. To run oneSolver 2.0 on a cluster see the *[notes and the supporting scripts](./oneSolver/utils/devcloud)*.
+The oneSolver 2.0 can either be executed on the Intel(R) DevCloud or on any cluster.
+To run oneSolver 2.0 on a cluster see the *[notes and the supporting scripts](oneSolver/utils/devcloud)*.
 
 # 6. Additional performance tests.
 ## Performance comparision of Parallel and distributed Exhaustive Search on CPU and GPU.
