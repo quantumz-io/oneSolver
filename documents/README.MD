@@ -99,7 +99,19 @@ node and then at each node, the problem is distributed over the selected device
 effectively increasing the accuracy of the searched solution.
 
 # 4. Performance differences between oneSolver 1.0 and oneSolver 2.0 
-Performance analysis of oneSolve 1.0 and oneSolver 2.0. (TBD)
+![ExhaustiveCPU](ExhaustiveOnCPU.svg "Fig 1")
+The figure shows the performance comparison of distributed exhaustive search on 
+a single node (equivalent to parallel implementation) to distributed exhaustive 
+search on multiple nodes. The performance tests were executed on the Intel(R) 
+DevCloud cluster nodes with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz 
+processor, and the Linux time utility was used to report the results. 
+
+![ExhaustiveGPU](ExhaustiveOnGPU.svg "Fig 2")
+The figure shows the performance comparison of distributed exhaustive search on 
+a single node (equivalent to parallel implementation) to distributed exhaustive 
+search on multiple nodes. The performance tests were executed on the Intel(R) 
+DevCloud cluster nodes with gpu device type: Intel(R) UHD Graphics P630, and 
+the Linux time utility was used to report the results.
 
 # 5. Description of running oneSolver 2.0 on a cluster
 The oneSolver 2.0 can either be executed on the Intel(R) DevCloud or on any cluster.
@@ -107,7 +119,7 @@ To run oneSolver 2.0 on a cluster see the *[notes and the supporting scripts](on
 
 # 6. Additional performance tests.
 ## Performance comparison of Distributed Exhaustive Search: GPU VS CPU.
-![ExhaustiveGPUvsCPU](ExhaustiveGPUvsCPU.svg "Fig 1")
+![ExhaustiveGPUvsCPU](ExhaustiveGPUvsCPU.svg "Fig 3")
 
 The figure shows the performance comparison of exhaustive search algorithm on two 
 devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = {25,26,27,28,29} 
