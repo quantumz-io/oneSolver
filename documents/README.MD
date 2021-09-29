@@ -100,6 +100,7 @@ effectively increasing the accuracy of the searched solution.
 
 # 4. Performance differences between oneSolver 1.0 and oneSolver 2.0 
 ![ExhaustiveCPU](ExhaustiveOnCPU.svg "Fig 1")
+
 The figure shows the performance comparison of distributed exhaustive search on 
 a single node (equivalent to parallel implementation) to distributed exhaustive 
 search on multiple nodes. The performance tests were executed on the Intel(R) 
@@ -107,6 +108,7 @@ DevCloud cluster nodes with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.
 processor, and the Linux time utility was used to report the results. 
 
 ![ExhaustiveGPU](ExhaustiveOnGPU.svg "Fig 2")
+
 The figure shows the performance comparison of distributed exhaustive search on 
 a single node (equivalent to parallel implementation) to distributed exhaustive 
 search on multiple nodes. The performance tests were executed on the Intel(R) 
