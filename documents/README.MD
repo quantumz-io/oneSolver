@@ -49,16 +49,18 @@ Outputs: Lowest Energy and Graph G* of size n as file
 6. call_parallel_for id < num_threads do
       local_best_energy = 0
       local_state_best = 0
-      for state = local_start_state to local_end_state do
+      for state = local_start_state < local_end_state do
           energy = calculate_energy(state, QUBOModel)
           if energy < local_best_energy
              local_best_energy = energy
              local_state_best = state
+           state = state + 1
 7. select_lowest_energy_and_state(local_best_energy,local_state_best )
 8. save_lowest_energy_and_state_to_file
 ```
 
 The Simulated annealing version of one solver 1.0  implements the following algorithm:
+
 ```{r, eval=FALSE}
 Inputs: Graph G of size n as a file, device type, beta_min, beta_max, schedule (geometric/linear), num_iter, num-tries
 Outputs: Lowest Energy and Graph G* of size n as file
@@ -88,6 +90,7 @@ Outputs: Lowest Energy and Graph G* of size n as file
 6. select_lowest_energy_and_state(local_best_energy,local_state_best)
 7. save_lowest_energy_and_state_to_file
 ```
+
 ## An introduction to oneSolver 2.0
 The oneSolver 2.0 adapts the exhaustive search and annealing to a distributed 
 environment using MPI, oneApi, and Boost C++ library. For exhaustive search, 
@@ -124,18 +127,19 @@ Outputs: Lowest Energy and Graph G* of size n as file
 8. for rank < total_num_procs do
      Select_device // select the specified device (cpu, gpu, host)
      num_threads = get_compute_units_for_selected_device
-     states_per_thread = (start_stat- end_state) / num_threads // divide the search space 
+     states_per_thread = (start_stat - end_state) / num_threads // divide the search space 
      for id < num_thrads do
         local_start_state = assing_local_start_state()
         local_end_state = assing_local_end_state()
      call_parallel_for id < num_threads do
         local_best_energy = 0
         local_state_best = 0
-     for state = local_start_state to local_end_state do
-        energy = calculate_energy(state, QUBOModel)
+        for state = local_start_state < local_end_state do
+          energy = calculate_energy(state, QUBOModel)
           if energy < local_best_energy
              local_best_energy = energy
              local_state_best = state
+          state = state + 1
      select_lowest_energy_and_state(local_best_energy,     local_state_best )
      send_min_energy_and_min_energy_state_to_root_process
 9. if rank == 0 
@@ -145,6 +149,60 @@ Outputs: Lowest Energy and Graph G* of size n as file
 ```
 
 The Simulated annealing version of one solver 2.0  implements the following algorithm:
+
+```{r, eval=FALSE}
+Inputs: Graph G of size n as a file, device type, beta_min, beta_max, schedule (geometric/linear), num_iter, num-tries
+Outputs: Lowest Energy and Graph G* of size n as file
+
+1. Initialize_MPI 
+2. Create_communication_group // Create a process group
+3. Obtain_process_rank // Each process obtains its rank in the process group
+4. if rank == 0
+     Read_G_to_QUBOModel // read graph to an internal QUBOModel 
+     format
+     Read_device_type // CPU, GPU or host
+     Read_other_parameters // Read beta_min, beta_max, schedule (geometric/linear), num_iter, num-tries
+     Broadcast_to_all_process(QUBOModel, device_type, beta_min, beta_max, schedule, num_iter, num-tries)
+5. for rank < total_num_procs do
+     Receive_QUBOModel
+     Receive_device_type
+     Recive_parameters(beta_min, beta_max, schedule, num_iter, num-tries)
+6.   if rank == 0
+       SEED = 1234 // a number as initial seed
+       seed_buff[total_num_procs] = 0
+       for i < total_num_procs do
+          seed_buff[i] = gen_mt19937_64_random_number(SEED);
+       scatter_seed_buff // Send unique seed to all the processes
+7. for rank < total_num_procs do 
+     receive_unique_seed
+8. for rank < total_num_procs do
+      if schedule_type == geometric
+         shedule = prepare_geometric_schedule(beta_min, beta_max, num_iter)
+      else if schedule_type == geometric
+         shedule = prepare_linear_schedule(beta_min, beta_max, num_iter)
+      num_threads = get_compute_units_for_selected_device
+      for idx < num_threads do
+         schedule = assign_schedule
+      call_parallel_for id < num-tries do
+         engine = create_philox4x32x10_engine(seed, id)
+         random = random_number_generator(engine)
+         local_best_state = local_current_state = random_state_generate(random)
+         local_best_energy = calculate_energy(local_start_state, QUBOModel)
+      
+         for iter = 0 to num_iter do
+            beta_schedule = schedule[iter]
+            local_current_state = flip_radom_bit_in_current_state(random) 
+            energy = calculate_energy(local_current_state, QUBOModel)
+            if energy < local_best_energy
+              local_best_energy = energy
+              local_state_best = local_current_state
+      select_lowest_energy_and_state(local_best_energy,local_state_best)
+      send_min_energy_and_min_energy_state_to_root_process
+9. if rank == 0 
+     gather_min_energy_and_min_energy_state
+     select_min_energy_and_min_energy_state
+     save_lowest_energy_and_state_to_file
+```
 
 # 4. Performance differences between oneSolver 1.0 and oneSolver 2.0 
 ![ExhaustiveCPU](ExhaustiveOnCPU.svg "Fig 1")
