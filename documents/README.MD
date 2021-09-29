@@ -42,7 +42,7 @@ Outputs: Lowest Energy and Graph G* of size n as file
 1. Read_G_to_QUBOModel // read graph to an internal QUBOModel format
 2. Select_device // select the specified device (cpu, gpu, host)
 3. num_threads = get_compute_units_for_selected_device
-4. states_per_thread = n_states / num_threads; // divide the search space 
+4. states_per_thread = n_states / num_threads // divide the search space 
 5. for id < num_thrads do
       local_start_state = assing_local_start_state()
       local_end_state = assing_local_end_state()
@@ -97,6 +97,54 @@ In annealing, the qubo problem along with a unique seed is distributed to every
 node and then at each node, the problem is distributed over the selected device 
 (CPU, GPU, host) to effectively increase the number of trajectories and thus 
 effectively increasing the accuracy of the searched solution.
+
+The Exhaustive Search version of one solver 2.0 implements the following algorithm:
+
+```{r, eval=FALSE}
+Inputs: Graph G of size n as a file, device type
+Outputs: Lowest Energy and Graph G* of size n as file
+
+1. Initialize_MPI 
+2. Create_communication_group // Create a process group
+3. Obtain_process_rank // Each process obtains its rank in the process group
+4. if rank == 0
+     Read_G_to_QUBOModel // read graph to an internal QUBOModel 
+     format
+     Read_device_type // CPU, GPU or host
+     Broadcast_to_all_process(QUBOModel, device_type) 
+5. for rank < total_num_procs do
+     Receive_QUBOModel
+     Receive_device_type
+6.   if rank == 0
+     states_per_process = n_states / num_processes // divide the search space at process level
+     Scatter_start_state_and_end_state // Scatter the start and end space
+7. for rank < total_num_procs do
+     Receive_start_stat
+     Receive_end_state
+8. for rank < total_num_procs do
+     Select_device // select the specified device (cpu, gpu, host)
+     num_threads = get_compute_units_for_selected_device
+     states_per_thread = (start_stat- end_state) / num_threads // divide the search space 
+     for id < num_thrads do
+        local_start_state = assing_local_start_state()
+        local_end_state = assing_local_end_state()
+     call_parallel_for id < num_threads do
+        local_best_energy = 0
+        local_state_best = 0
+     for state = local_start_state to local_end_state do
+        energy = calculate_energy(state, QUBOModel)
+          if energy < local_best_energy
+             local_best_energy = energy
+             local_state_best = state
+     select_lowest_energy_and_state(local_best_energy,     local_state_best )
+     send_min_energy_and_min_energy_state_to_root_process
+9. if rank == 0 
+     gather_min_energy_and_min_energy_state
+     select_min_energy_and_min_energy_state
+     save_lowest_energy_and_state_to_file
+```
+
+The Simulated annealing version of one solver 2.0  implements the following algorithm:
 
 # 4. Performance differences between oneSolver 1.0 and oneSolver 2.0 
 ![ExhaustiveCPU](ExhaustiveOnCPU.svg "Fig 1")
