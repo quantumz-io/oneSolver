@@ -109,7 +109,8 @@ To run oneSolver 2.0 on a cluster see the *[notes and the supporting scripts](on
 ## Performance comparison of Distributed Exhaustive Search: GPU VS CPU.
 ![ExhaustiveGPUvsCPU](ExhaustiveGPUvsCPU.svg "Fig 1")
 
-The figure shows the performance comparison of exhaustive search algorithm on 
-two devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size 
-L = {25,26,27,28} vertices.
+The figure shows the performance comparison of exhaustive search algorithm on two 
+devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = {25,26,27,28,29} 
+vertices on cluster nodes ranging from two to sixteen.
+
 ## Performance comparision of Parallel and distributed simulated annealing on CPU vs GPU.
