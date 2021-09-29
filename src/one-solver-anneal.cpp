@@ -428,9 +428,7 @@ int main(int argc, char *argv[]) {
         MPI_Get_count(&status, MPI_CHAR, &msg_length);
 
         std::unique_ptr<char> log_buff_ptr(new char[msg_length]{});
-        //std::fill(log_buff_ptr.get(), log_buff_ptr.get() + msg_length, 0);
-        std::cout << log_buff_ptr.get();
-        //std::cout << "rank_indx: " << rank_indx << std::endl;
+
         MPI_Recv(log_buff_ptr.get(), msg_length, MPI_CHAR, rank_indx, 1 , MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         std::string log_msg(log_buff_ptr.get());
         //std::cout << log_buff_ptr.get() << std::endl;
@@ -472,20 +470,29 @@ int main(int argc, char *argv[]) {
     }
 
     if (rank == root_rank) {
-      char buff[64];
       if (min_energy_process_rank != 0) {
-        if (MPI_Recv(&buff, 64, MPI_CHAR, min_energy_process_rank, root_rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+        MPI_Status status;
+        int msg_length;
+        
+        // Probe msg size
+        MPI_Probe(min_energy_process_rank, 0, MPI_COMM_WORLD, &status);
+        MPI_Get_count(&status, MPI_CHAR, &msg_length);
+        
+        std::unique_ptr<char> buff_ptr(new char[msg_length]{});
+        
+        if (MPI_Recv(buff_ptr.get(), msg_length, MPI_CHAR, min_energy_process_rank, root_rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
          throw std::runtime_error("MPI receive failed\n");
         }
+        std::cout << buff_ptr.get();
 #ifdef DEBUG
-        std::cout << "Min Energy State: "
+        std::cout << "Min Energy State: ";
         for (auto i = 0; i < solution.state.size(); ++i) {
-        std::cout << (int)buff[i] << " ";
+        std::cout << (int)buff_ptr.get()[i] << " ";
         }
         std::cout << std::endl;
 #endif
         for (auto i=0; i < solution.state.size(); ++i ) {
-          solution.state[i] = buff[i];
+          solution.state[i] = buff_ptr.get()[i];
         } 
       }
 
