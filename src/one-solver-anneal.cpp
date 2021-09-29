@@ -472,9 +472,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (rank == root_rank) {
-      char buff[32];
+      char buff[64];
       if (min_energy_process_rank != 0) {
-        if (MPI_Recv(&buff, 32, MPI_CHAR, min_energy_process_rank, root_rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+        if (MPI_Recv(&buff, 64, MPI_CHAR, min_energy_process_rank, root_rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
          throw std::runtime_error("MPI receive failed\n");
         }
 #ifdef DEBUG
