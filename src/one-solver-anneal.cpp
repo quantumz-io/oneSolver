@@ -479,11 +479,11 @@ int main(int argc, char *argv[]) {
         MPI_Get_count(&status, MPI_CHAR, &msg_length);
         
         std::unique_ptr<char> buff_ptr(new char[msg_length]{});
-        
+
         if (MPI_Recv(buff_ptr.get(), msg_length, MPI_CHAR, min_energy_process_rank, root_rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
          throw std::runtime_error("MPI receive failed\n");
         }
-        std::cout << buff_ptr.get();
+        //std::cout << buff_ptr.get();
 #ifdef DEBUG
         std::cout << "Min Energy State: ";
         for (auto i = 0; i < solution.state.size(); ++i) {

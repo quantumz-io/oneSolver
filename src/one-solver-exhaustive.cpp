@@ -331,20 +331,28 @@ int main(int argc, char *argv[]) {
     }
 
     if (rank == root_rank) {
-      char buff[32];
       if (min_energy_process_rank != root_rank) {
-        if (MPI_Recv(&buff, 32, MPI_CHAR, min_energy_process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+        MPI_Status status;
+        int msg_length;
+        
+        // Probe msg size
+        MPI_Probe(min_energy_process_rank, 0, MPI_COMM_WORLD, &status);
+        MPI_Get_count(&status, MPI_CHAR, &msg_length);
+        
+        std::unique_ptr<char> buff_ptr(new char[msg_length]{});
+
+        if (MPI_Recv(buff_ptr.get(), msg_length, MPI_CHAR, min_energy_process_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
           throw std::runtime_error("MPI receive failed\n");
         }
 #ifdef DEBUG
-        std::cout << "Min Energy State: "       
+        std::cout << "Min Energy State: ";       
         for (auto i = 0; i < solution.state.size(); ++i) {
-        std::cout << (int)buff[i] << " ";
+        std::cout << (int)buff_ptr.get()[i] << " ";
         }
         std::cout << std::endl;
 #endif
         for (auto i = 0; i < solution.state.size(); ++i ) {
-          solution.state[i] = buff[i];
+          solution.state[i] = buff_ptr.get()[i];
         } 
       }
 
