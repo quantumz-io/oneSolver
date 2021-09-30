@@ -237,7 +237,7 @@ vertices on cluster nodes ranging from two to sixteen.
 
 ![AnnealingGPUvsCPU](AnnealingTimeOnGPUvsCPU.svg "Fig 4")
 
-The figure shows the performance comparison of exhaustive search algorithm on two
+The figure shows the performance comparison of annealing algorithm on two
 devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = 512
 vertices on cluster nodes ranging from two to sixteen.
 
