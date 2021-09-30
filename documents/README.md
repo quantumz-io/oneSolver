@@ -18,25 +18,25 @@ expressed as a physics spin-glass model, which can be encoded as an
 Ising Model describing spins with 2-body interaction [3].
 
 QUBO represents an optimization problem, where a quadratic function on
-$N$ binary variables is to be minimized over $2^N$ possible assignments
+N binary variables is to be minimized over 2^N possible assignments
 of its variables. The problem can also be represented as an undirected
-graph $G = [N,E]$ with node set $N = \{1,2,\cdots,i,\cdots,n\}$ and edge
-set $E = \{(i,j): i,j \in N \}$. The QUBO optimization problem can be
+graph G = [N, E] with node set N = {1,2,...,i,...,n} and edge
+set E = {(i,j): i,j ∈ N}. The QUBO optimization problem can be
 expressed as:
 
-$\min_{\vec{x}} \biggl\{E_{qubo}(\vec{x}) = -\sum_{i=0}^{i=n} c_{ii}x_{i} - \sum_{i=j=0}^{i=j=n} c_{i,j} x_{i}x_{j}\biggr\}$
+![Eq1](eq1.svg)
 
-where the function $E_{qubo}$ is reffered to as the cost function,
-$c_{i,j}$ as the weight of the edge $(i,j)$ and $\vec{x} =
-(x_{1},x_{2},\cdots,x_{n})$ represents the assgnments of $N$ boolean
-variables that maximinimizes the cost function.
+where the function F is reffered to as the cost function,
+cᵢⱼ as the weight of the edge (i,j) and x = 
+(x1, x2, ... , xn) represents the assgnments of N boolean
+variables that minimizes the cost function.
 
 An equivalent formulation where coefficients are represented as a Q
 matrix is:
 
-$\min\biggl\{-x^tQx: x \in \{0,1\}^n\biggr\}$
+![Eq2](eq2.svg)
 
-where $Q$ is an n-by n upper triangular matrix of coefficients.
+where Q is an n-by n upper triangular matrix of coefficients.
 
 ## 2. Introduction to parallel and distributed Ising models solvers
 
@@ -295,7 +295,7 @@ following algorithm:
 Here we present the differences in time of execution and the quality of the 
 obtained results depending on the number of computational nodes used for the 
 computation. We assume that the performance difference between oneSolver 1.0 
-and oneSolver 2.0,  when used on a single computational node is negligible.
+and oneSolver 2.0, when used on a single computational node is negligible.
 
 Both algorithms implemented in oneSolver are benchmarked. In the case of
 the exhaustive search, we calculate the time-to-solution since the
@@ -365,8 +365,8 @@ the CPU due to the shared nature of the cluster.
 ## 5. Description of running oneSolver 2.0 on a cluster
 
 The oneSolver 2.0 can either be executed on the Intel(R) DevCloud or on
-any cluster. To run oneSolver 2.0 on a cluster see the *[notes and the
-supporting scripts](oneSolver/utils/devcloud)*.
+any cluster. To run oneSolver 2.0 on a cluster see the notes and the
+supporting scripts in `utils/devcloud` and `utils/devcloud/pbs` folders.
 
 ## 6. Additional performance tests
 
