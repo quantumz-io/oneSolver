@@ -345,7 +345,6 @@ with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and gpu
 device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
 report the results.
 
-
 ![AnnealingEnergyOnGPU](AnnealingEnergyOnGPU.svg "Fig 3") 
 ![AnnealingEnergyOnCPU](AnnealingEnergyOnCPU.svg "Fig 4")
 
@@ -354,13 +353,13 @@ the execution of the simulated annealing algorithm. As it is a
 randomized probablistic algorithm we can expect to observe deviations from the
 decreasing characteristic of the energy in the function of number of nodes. 
 
-
 ![AnnealingTimeOnGPU](AnnealingTimeOnGPU.svg "Fig 5")
 ![AnnealingTimeOnCPU](AnnealingTimeOnCPU.svg "Fig 6")
 
 The figure presents time-to-solution as function of number of nodes employed in 
-the execution of the simulated annealing algorithm. 
-
+the execution of the simulated annealing algorithm. We can expect to observe 
+deviations from the increasing time characteristic as a the function of number 
+of nodes on CPU device due to shared nature of cluster.
 
 ## 5. Description of running oneSolver 2.0 on a cluster
 
@@ -397,7 +396,6 @@ report the results.
 The figure shows the performance comparison of annealing algorithm on two devices:
 GPU and CPU of Intel(R) DevCloud cluster for Chimera graphs of size L = 512 
 vertices on cluster nodes ranging from two to sixteen. 
-
 
 # References
 1) Gary Kochenberger, Jin Kao Hao, Fred Glover, Mark Lewis, Zhipeng Lü, Haibo Wang,
