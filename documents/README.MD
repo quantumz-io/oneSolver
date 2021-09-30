@@ -42,7 +42,7 @@ where $Q$ is an n-by n upper triangular matrix of coefficients.
 
 Several algorithms have been developed over a period of time to solve
 QUBO instances ranging from exact exhaustive solvers to approximate
-solvers, to heuristics without performance guarantee [\cite]. Recently
+solvers, to heuristics without performance guarantee [4]. Recently
 quantum algorithms have also joined the race. Here we will describe the
 two solvers: exhaustive search and annealing. The exhaustive algorithm
 gives the exact result for a small size problem and it is used to
