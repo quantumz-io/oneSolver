@@ -1,5 +1,5 @@
 # 1. Introduction 
-Optimization problems are often encountered in the field of research and they generally hard. The hardness of the problem is due to the exponential worst-case runtime required to explore the extensive solution space for the solution. Many such optimization problems can be expressed in terms of the binary-variable model with a quadratic cost function. Such a class of problems is referred to as Quadratic Unconstrained Binary Optimization (QUBO). A few NP-Hard problems can naturally be reduced to QUBO and are central to the theory of computational complexity. The QUBO model applies to a diverse set of tasks such as resource allocation, clustering, set partitioning, facility locations, various forms of assignment problems, sequencing problems, and ordering problems [\cite]. The QUBO problem can be expressed as a physics spin-glass model, which can be encoded as an Ising Model describing spins with 2-body interaction [\cite].
+Optimization problems are often encountered in the field of research and they generally hard. The hardness of the problem is due to the exponential worst-case runtime required to explore the extensive solution space for the solution. Many such optimization problems can be expressed in terms of the binary-variable model with a quadratic cost function. Such a class of problems is referred to as Quadratic Unconstrained Binary Optimization (QUBO). A few NP-Hard problems can naturally be reduced to QUBO and are central to the theory of computational complexity. The QUBO model applies to a diverse set of tasks such as resource allocation, clustering, set partitioning, facility locations, various forms of assignment problems, sequencing problems, and ordering problems [1,2]. The QUBO problem can be expressed as a physics spin-glass model, which can be encoded as an Ising Model describing spins with 2-body interaction [3].
 
 QUBO represents an optimization problem, where a quadratic function on $N$ binary variables is to be minimized over $2^N$ possible assignments of its variables. The problem can also be represented as an undirected graph $G = [N,E]$ with node set $N = \{1,2,\cdots,i,\cdots,n\}$ and edge set $E = \{(i,j): i,j \in N \}$. The QUBO optimization problem can be expressed as:
 
@@ -22,7 +22,7 @@ The idea of an exhaustive brute force solver is to search the entire state space
 Exhaustive solvers are limited to small problem sizes, and they can solve the Ising model defined on an arbitrary graph. With the exhaustive search algorithm, one can certify the output on small problem size. On large problem size, the exhaustive search algorithm requires computing resources exponential with the size of the graph.
 
 ## Simulated annealing
-Simulated annealing is a randomized search method for optimization problems and it is inspired by Statistical mechanics. It obtains its name from the heating-cooling methodology of metal annealing. This Monte Carlo search method tries to improve a solution by walking randomly in the space of possible solutions and each move is probabilistically dependent on a parameter called "temperature". At high temperature, the random walk is unbiased and the moves are uniformly distributed over the whole space of solutions; as the temperature decreases, each move of random walk lead towards more likely solutions with a better objective value, and the distribution is more and more biased towards the optimal solution. The sequence of temperatures and lengths of time for which they are maintained is called *annealing schedule*.
+Simulated annealing is a randomized search method for optimization problems and it is inspired by Statistical mechanics [4]. It obtains its name from the heating-cooling methodology of metal annealing. This Monte Carlo search method tries to improve a solution by walking randomly in the space of possible solutions and each move is probabilistically dependent on a parameter called "temperature". At high temperature, the random walk is unbiased and the moves are uniformly distributed over the whole space of solutions; as the temperature decreases, each move of random walk lead towards more likely solutions with a better objective value, and the distribution is more and more biased towards the optimal solution. The sequence of temperatures and lengths of time for which they are maintained is called *annealing schedule*.
 
 ## Parallel and distributed solver for Ising models
 Parallel Ising model solvers on a single node with multiple processing units solve a task in parallel by breaking the problem into small pieces and assign each subtask to each process. In the particular case of exhaustive search, the solution state space is divided into equal chunks and provided to each process as an initial parameter. Whereas in the case of Simulated annealing, each process searches the state space for a solution starting from a randomly generated state.
@@ -233,4 +233,16 @@ The figure shows the performance comparison of exhaustive search algorithm on tw
 devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = {25,26,27,28,29} 
 vertices on cluster nodes ranging from two to sixteen.
 
-## Performance comparision of Parallel and distributed simulated annealing on CPU vs GPU.
+## Performance comparision of Parallel and distributed simulated annealing on GPU vs CPU.
+
+![AnnealingGPUvsCPU](AnnealingTimeOnGPUvsCPU.svg "Fig 4")
+
+The figure shows the performance comparison of exhaustive search algorithm on two
+devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = 512
+vertices on cluster nodes ranging from two to sixteen.
+
+# References
+1) Gary Kochenberger, Jin Kao Hao, Fred Glover, Mark Lewis, Zhipeng Lu ̈, Haibo Wang, and Yang Wang. The un- constrained binary quadratic programming problem: A survey. Journal of Combinatorial Optimization, 28(1):58–81, 2014.
+2) Fred Glover, Gary Kochenberger, and Yu Du. Quantum Bridge Analytics I: a tutorial on formulating and using QUBO models. arXiv:1811.11538, 2018
+3) Rodney J. Baxter. Exactly Solved Model in Statistica. Academic Press, 1982.
+4) S. Kirkpatrick, C. D. Gelatt, Jr., M. P. Vecchi Optimizationby Simulated Annealing. Science 220, 4598, 1983.
