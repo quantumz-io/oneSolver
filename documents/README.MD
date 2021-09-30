@@ -14,7 +14,7 @@ $\min\biggl\{-x^tQx: x \in \{0,1\}^n\biggr\}$
 where $Q$ is an n-by n upper triangular matrix of coefficients.
 
 # 2. Introduction to parallel and distributed Ising models solvers
-Several algorithms have been developed over a period of time to solve QUBO instances ranging from exact exhaustive solvers to approximate solvers, to heuristics without performance guarantee [\cite]. Recently quantum algorithms have also joined the race. Here we will describe the two solvers: exhaustive search and annealing. The exhaustive algorithm gives the exact result for a small size problem and it is used to benchmark other algorithms and the annealing algorithm is a stochastic method to solve the problem.
+Several algorithms have been developed over a period of time to solve QUBO instances ranging from exact exhaustive solvers to approximate solvers, to heuristics without performance guarantee [4]. Recently quantum algorithms have also joined the race. Here we will describe the two solvers: exhaustive search and annealing. The exhaustive algorithm gives the exact result for a small size problem and it is used to benchmark other algorithms and the annealing algorithm is a stochastic method to solve the problem.
 
 ## Exhaustive Search
 The idea of an exhaustive brute force solver is to search the entire state space for a low energy configuration of state variables. In physics, the above formulation of the QUBO problem is equivalent to the Hamiltonian formulation of an Ising Model describing spins with 2-body interaction; it represents the Hamiltonian of the system. Since the terms are classical and they commute hence this is equivalent to the exact diagonalization. Although the eigenvalue problem for classical models can be executed in parallel, an efficient implementation is not trivial.
@@ -22,7 +22,7 @@ The idea of an exhaustive brute force solver is to search the entire state space
 Exhaustive solvers are limited to small problem sizes, and they can solve the Ising model defined on an arbitrary graph. With the exhaustive search algorithm, one can certify the output on small problem size. On large problem size, the exhaustive search algorithm requires computing resources exponential with the size of the graph.
 
 ## Simulated annealing
-Simulated annealing is a randomized search method for optimization problems and it is inspired by Statistical mechanics [4]. It obtains its name from the heating-cooling methodology of metal annealing. This Monte Carlo search method tries to improve a solution by walking randomly in the space of possible solutions and each move is probabilistically dependent on a parameter called "temperature". At high temperature, the random walk is unbiased and the moves are uniformly distributed over the whole space of solutions; as the temperature decreases, each move of random walk lead towards more likely solutions with a better objective value, and the distribution is more and more biased towards the optimal solution. The sequence of temperatures and lengths of time for which they are maintained is called *annealing schedule*.
+Simulated annealing is a randomized search method for optimization problems and it is inspired by Statistical mechanics [5]. It obtains its name from the heating-cooling methodology of metal annealing. This Monte Carlo search method tries to improve a solution by walking randomly in the space of possible solutions and each move is probabilistically dependent on a parameter called "temperature". At high temperature, the random walk is unbiased and the moves are uniformly distributed over the whole space of solutions; as the temperature decreases, each move of random walk lead towards more likely solutions with a better objective value, and the distribution is more and more biased towards the optimal solution. The sequence of temperatures and lengths of time for which they are maintained is called *annealing schedule*.
 
 ## Parallel and distributed solver for Ising models
 Parallel Ising model solvers on a single node with multiple processing units solve a task in parallel by breaking the problem into small pieces and assign each subtask to each process. In the particular case of exhaustive search, the solution state space is divided into equal chunks and provided to each process as an initial parameter. Whereas in the case of Simulated annealing, each process searches the state space for a solution starting from a randomly generated state.
@@ -265,7 +265,8 @@ devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = 512
 vertices on cluster nodes ranging from two to sixteen.
 
 # References
-1) Gary Kochenberger, Jin Kao Hao, Fred Glover, Mark Lewis, Zhipeng Lu ̈, Haibo Wang, and Yang Wang. The un- constrained binary quadratic programming problem: A survey. Journal of Combinatorial Optimization, 28(1):58–81, 2014.
+1) Gary Kochenberger, Jin Kao Hao, Fred Glover, Mark Lewis, Zhipeng Lü, Haibo Wang, and Yang Wang. The unconstrained binary quadratic programming problem: A survey. Journal of Combinatorial Optimization, 28(1):58–81, 2014.
 2) Fred Glover, Gary Kochenberger, and Yu Du. Quantum Bridge Analytics I: a tutorial on formulating and using QUBO models. arXiv:1811.11538, 2018.
 3) Rodney J. Baxter. Exactly Solved Model in Statistica. Academic Press, 1982.
-4) S. Kirkpatrick, C. D. Gelatt, Jr., M. P. Vecchi Optimizationby Simulated Annealing. Science 220, 4598, 1983.
+4) Jakub Czartowski, B.G.Y.F.K.Z., Konrad Szymanski Ground state energy: Can it really be reached with quantum annealers?. Preprint at arXiv:11812.09251 (2018).
+5) S. Kirkpatrick, C. D. Gelatt, Jr., M. P. Vecchi Optimizationby Simulated Annealing. Science 220, 4598, 1983.
