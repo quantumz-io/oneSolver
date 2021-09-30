@@ -205,10 +205,11 @@ Outputs: Lowest Energy and Graph G* of size n as file
 ```
 
 # 4. Performance differences between oneSolver 1.0 and oneSolver 2.0 
+## Exhaustive search performance
 ![ExhaustiveCPU](ExhaustiveOnCPU.svg "Fig 1")
 
 The figure shows the performance comparison of distributed exhaustive search on 
-a single node (equivalent to parallel implementation) to distributed exhaustive 
+a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed exhaustive 
 search on multiple nodes. The performance tests were executed on the Intel(R) 
 DevCloud cluster nodes with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz 
 processor, and the Linux time utility was used to report the results. 
@@ -216,10 +217,20 @@ processor, and the Linux time utility was used to report the results.
 ![ExhaustiveGPU](ExhaustiveOnGPU.svg "Fig 2")
 
 The figure shows the performance comparison of distributed exhaustive search on 
-a single node (equivalent to parallel implementation) to distributed exhaustive 
+a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed exhaustive 
 search on multiple nodes. The performance tests were executed on the Intel(R) 
 DevCloud cluster nodes with gpu device type: Intel(R) UHD Graphics P630, and 
 the Linux time utility was used to report the results.
+
+## Annealing performance
+
+![AnnealingTimeOnCPU](AnnealingTimeOnCPU.svg "Fig 3")
+
+![AnnealingTimeOnGPU](AnnealingTimeOnGPU.svg "Fig 4")
+
+![AnnealingEnergyOnCPU](AnnealingEnergyOnCPU.svg "Fig 5")
+
+![AnnealingEnergyOnGPU](AnnealingEnergyOnGPU.svg "Fig 6")
 
 # 5. Description of running oneSolver 2.0 on a cluster
 The oneSolver 2.0 can either be executed on the Intel(R) DevCloud or on any cluster.
@@ -227,7 +238,7 @@ To run oneSolver 2.0 on a cluster see the *[notes and the supporting scripts](on
 
 # 6. Additional performance tests.
 ## Performance comparison of Distributed Exhaustive Search: GPU VS CPU.
-![ExhaustiveGPUvsCPU](ExhaustiveGPUvsCPU.svg "Fig 3")
+![ExhaustiveGPUvsCPU](ExhaustiveGPUvsCPU.svg "Fig 7")
 
 The figure shows the performance comparison of exhaustive search algorithm on two 
 devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = {25,26,27,28,29} 
@@ -235,7 +246,7 @@ vertices on cluster nodes ranging from two to sixteen.
 
 ## Performance comparision of Parallel and distributed simulated annealing on GPU vs CPU.
 
-![AnnealingGPUvsCPU](AnnealingTimeOnGPUvsCPU.svg "Fig 4")
+![AnnealingTimeOnGPUvsCPU](AnnealingTimeOnGPUvsCPU.svg "Fig 8")
 
 The figure shows the performance comparison of annealing algorithm on two
 devices: GPU and CPU of Intel(R) DevCloud cluster for graphs of size L = 512
@@ -243,6 +254,6 @@ vertices on cluster nodes ranging from two to sixteen.
 
 # References
 1) Gary Kochenberger, Jin Kao Hao, Fred Glover, Mark Lewis, Zhipeng Lu ̈, Haibo Wang, and Yang Wang. The un- constrained binary quadratic programming problem: A survey. Journal of Combinatorial Optimization, 28(1):58–81, 2014.
-2) Fred Glover, Gary Kochenberger, and Yu Du. Quantum Bridge Analytics I: a tutorial on formulating and using QUBO models. arXiv:1811.11538, 2018
+2) Fred Glover, Gary Kochenberger, and Yu Du. Quantum Bridge Analytics I: a tutorial on formulating and using QUBO models. arXiv:1811.11538, 2018.
 3) Rodney J. Baxter. Exactly Solved Model in Statistica. Academic Press, 1982.
 4) S. Kirkpatrick, C. D. Gelatt, Jr., M. P. Vecchi Optimizationby Simulated Annealing. Science 220, 4598, 1983.
