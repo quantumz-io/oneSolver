@@ -70,6 +70,7 @@ The command to execute this script is:
 ```bash
 ./utils/devcloud/qsnodes.sh
 ```
+
 The output of this command shows the allowed options which could be passed to the script and exit to shell. Allowed options for this script are very similar to those of the _nodes.sh_ script:
 
 ```bash
@@ -85,6 +86,7 @@ To allocate six free nodes equipped with graphics cards, run the following comma
 ```bash
 ./utils/devcloud/qsnodes.sh -n 6 -g
 ```
+
 The output will be a command which could be directly passed to the _qsub_ utility:
 
 ```bash
@@ -96,4 +98,5 @@ So to allocate six free nodes equipped with graphics cards for computation the c
 ```bash
 qsub `./utils/devcloud/qsnodes.sh -n 6 -g` -I
 ```
+
 Take care about the "`" backticks used in the command. The rest of the options in this command is passed to the _qsub_ resource manager. If six free nodes equipped with graphics cards are available then they will be allocated for computations.
