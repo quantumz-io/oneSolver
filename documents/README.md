@@ -21,21 +21,17 @@ QUBO represents an optimization problem, where a quadratic function on
 N binary variables is to be minimized over 2^N possible assignments
 of its variables. The problem can also be represented as an undirected
 graph G = [N, E] with node set N = {1,2,...,i,...,n} and edge
-set E = {(i,j): i,j ∈ N}. The QUBO optimization problem can be
+set E = {(i,j): i,j in N}. The QUBO optimization problem can be
 expressed as:
-
 ![Eq1](eq1.svg)
-
 where the function F is reffered to as the cost function,
-cᵢⱼ as the weight of the edge (i,j) and x = 
+cij as the weight of the edge (i,j) and x = 
 (x1, x2, ... , xn) represents the assgnments of N boolean
 variables that minimizes the cost function.
 
 An equivalent formulation where coefficients are represented as a Q
 matrix is:
-
 ![Eq2](eq2.svg)
-
 where Q is an n-by n upper triangular matrix of coefficients.
 
 ## 2. Introduction to parallel and distributed Ising models solvers
@@ -344,7 +340,8 @@ The performance tests were executed on the Intel(R) DevCloud computational nodes
 with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and GPU 
 device type: Intel(R) UHD Graphics P630.
 
-![AnnealingEnergyOnGPU](AnnealingEnergyOnGPU.svg "Fig 3") 
+![AnnealingEnergyOnGPU](AnnealingEnergyOnGPU.svg "Fig 3")
+
 ![AnnealingEnergyOnCPU](AnnealingEnergyOnCPU.svg "Fig 4")
 
 Figure 3 and 4 present energy as a function of the number of
@@ -354,6 +351,7 @@ to observe deviations from the decreasing characteristic of the energy
 in the function of number of computational nodes. 
 
 ![AnnealingTimeOnGPU](AnnealingTimeOnGPU.svg "Fig 5")
+
 ![AnnealingTimeOnCPU](AnnealingTimeOnCPU.svg "Fig 6")
 
 Figure 5 and 6 present time-to-solution as a function of the number of
