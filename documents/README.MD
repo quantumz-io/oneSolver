@@ -293,28 +293,27 @@ Outputs: Lowest Energy and Graph G* of size n as file
 
 ## 4. Performance differences between oneSolver 1.0 and oneSolver 2.0
 
-Here we present the differences in time of execution and the quality of the
-obtained results depending on the number of computational nodes used for
-the computation. We assume that the performance difference between oneSolver
-1.0 and oneSolver 2.0 when used on a single computational node is negligible.
+Here we present the differences in time of execution and the quality of the 
+obtained results depending on the number of computational nodes used for the 
+computation. We assume that the performance difference between oneSolver 1.0 
+and oneSolver 2.0,  when used on a single computational node is negligible.
 
-Both algorithms implemented in oneSolver are benchmarked. In case of the
-exhaustive search we calculate the time-to-solution since the number of
-elementary calculations that have to performed in order to solve a given
-Ising problem is fixed. In case of simulated annealing the computing
-time is almost constant in function of number of nodes. But, because we
-initiate search for low energy states from multiple starting points
-given multiple computational nodes, we observe that running the
-algorithm at multiple computational nodes usually leads to finding
-better solutions.
+Both algorithms implemented in oneSolver are benchmarked. In the case of the 
+exhaustive search, we calculate the time-to-solution since the number of 
+elementary calculations that have to be performed to solve a given Ising problem
+is fixed. In the case of simulated annealing, the computing time is an almost 
+constant function of the number of nodes. But, because we initiate the search 
+for low energy states from multiple starting points given multiple computational
+nodes, we observe that running the algorithm at multiple computational nodes 
+usually leads to finding better solutions.
 
 ### Exhaustive search benchmarks
-In order to benchmark implemenation of the simulated annealing algorithm
+In order to benchmark the implementation of the simulated annealing algorithm
 we test the algorithms on the problem of Chimera graphs of size L = {25,26,27,28,29}
 vertices.
 
 The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
-with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor and gpu 
+with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor and GPU 
 device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
 report the results.
 
@@ -332,34 +331,34 @@ distributed exhaustive search on multiple nodes.
 
 ### Simulated annealing search benchmarks
 
-In order to benchmark implemenation of the simulated annealing algorithm
-we test in on the problem of Chimera graph with L=512 vertices. The algorithm was
+In order to benchmark implementation of the simulated annealing algorithm
+we test it on the problem of Chimera graph with L=512 vertices. The algorithm was
 executed with the following paramters:
 1) Beta range: [0.1, 10]
 2) Type of beta schedule: linear, geometric
 3) Number of iterations: 100
-4) Number of trajectories : 200 per node
+4) Number of trajectories: 200 per node
 
 The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
-with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and gpu 
+with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and GPU 
 device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
 report the results.
 
 ![AnnealingEnergyOnGPU](AnnealingEnergyOnGPU.svg "Fig 3") 
 ![AnnealingEnergyOnCPU](AnnealingEnergyOnCPU.svg "Fig 4")
 
-The figure presents energy as a function of number of nodes employed in
+The figure presents energy as a function of the number of nodes employed in
 the execution of the simulated annealing algorithm. As it is a
-randomized probablistic algorithm we can expect to observe deviations from the
+randomized probabilistic algorithm we can expect to observe deviations from the
 decreasing characteristic of the energy in the function of number of nodes. 
 
 ![AnnealingTimeOnGPU](AnnealingTimeOnGPU.svg "Fig 5")
 ![AnnealingTimeOnCPU](AnnealingTimeOnCPU.svg "Fig 6")
 
-The figure presents time-to-solution as function of number of nodes employed in 
-the execution of the simulated annealing algorithm. We can expect to observe 
-deviations from the increasing time characteristic as a the function of number 
-of nodes on CPU device due to shared nature of cluster.
+The figure presents time-to-solution as a function of the number of nodes employed
+in the execution of the simulated annealing algorithm. We can expect to observe 
+deviations from the increasing time characteristic as the function of the number
+of nodes on the CPU due to the shared nature of the cluster.
 
 ## 5. Description of running oneSolver 2.0 on a cluster
 
@@ -371,7 +370,7 @@ supporting scripts](oneSolver/utils/devcloud)*.
 
 ### Performance comparison of Distributed Exhaustive Search: GPU VS CPU
 The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
-with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor and gpu
+with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor and GPU
 device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
 report the results.
 
@@ -385,7 +384,7 @@ from two to sixteen.
 ### Performance comparison of Parallel and distributed simulated annealing on CPU vs GPU
 
 The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
-with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and gpu 
+with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and GPU 
 device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
 report the results.
 
@@ -393,7 +392,7 @@ report the results.
  
 ![AnnealingEnergyOnGPUvsCPU](AnnealingEnergyOnGPUvsCPU.svg "Fig 9")
 
-The figure shows the performance comparison of annealing algorithm on two devices:
+The figure shows the performance comparison of the annealing algorithm on two devices:
 GPU and CPU of Intel(R) DevCloud cluster for Chimera graphs of size L = 512 
 vertices on cluster nodes ranging from two to sixteen. 
 
