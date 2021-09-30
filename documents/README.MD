@@ -227,22 +227,22 @@ the Linux time utility was used to report the results.
 ![AnnealingTimeOnCPU](AnnealingTimeOnCPU.svg "Fig 3")
 
 The figure shows the performance comparison of annealing on 
-a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes. The plot compares the annealing time versus the number of nodes with linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor, and the Linux time utility was used to report the results.
+a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes for graphs of size L = 512. The plot compares the annealing time versus the number of nodes with linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor, and the Linux time utility was used to report the results.
 
 ![AnnealingTimeOnGPU](AnnealingTimeOnGPU.svg "Fig 4")
 
 The figure shows the performance comparison of annealing on 
-a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes. The plot compares the annealing time versus the number of nodes with linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with gpu device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to report the results.
+a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes for graphs of size L = 512. The plot compares the annealing time versus the number of nodes with linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with gpu device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to report the results.
 
 ![AnnealingEnergyOnCPU](AnnealingEnergyOnCPU.svg "Fig 5")
 
 The figure shows the performance comparison of annealing on 
-a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes. The plot compares the minimum energy versus the number of nodes for linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor, and the Linux time utility was used to report the results.
+a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes for graphs of size L = 512. The plot compares the minimum energy versus the number of nodes for linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor, and the Linux time utility was used to report the results.
 
 ![AnnealingEnergyOnGPU](AnnealingEnergyOnGPU.svg "Fig 6")
 
 The figure shows the performance comparison of annealing time  on 
-a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes. The plot compares the minimum energy versus the number of nodes for linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with gpu device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to report the results.
+a single node (equivalent to parallel implementation i.e. oneSolver 1.0) to distributed annealing on multiple nodes for graphs of size L = 512. The plot compares the minimum energy versus the number of nodes for linear and geometric schedules. The performance tests were executed on the Intel(R) DevCloud cluster nodes with gpu device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to report the results.
 
 # 5. Description of running oneSolver 2.0 on a cluster
 The oneSolver 2.0 can either be executed on the Intel(R) DevCloud or on any cluster.
