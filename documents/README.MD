@@ -293,7 +293,7 @@ Outputs: Lowest Energy and Graph G* of size n as file
 
 ## 4. Performance differences between oneSolver 1.0 and oneSolver 2.0
 
-Here we present the differences of time execution and the quality of the
+Here we present the differences in time of execution and the quality of the
 obtained results depending on the number of computational nodes used for
 the computation. We assume that the performance difference between oneSolver
 1.0 and oneSolver 2.0 when used on a single computational node is negligible.
@@ -309,24 +309,26 @@ algorithm at multiple computational nodes usually leads to finding
 better solutions.
 
 ### Exhaustive search benchmarks
+In order to benchmark implemenation of the simulated annealing algorithm
+we test the algorithms on the problem of Chimera graphs of size L = {25,26,27,28,29}
+vertices.
+
+The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
+with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor and gpu 
+device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
+report the results.
 
 ![ExhaustiveCPU](ExhaustiveOnCPU.svg "Fig 1")
 
 The figure shows the performance comparison of distributed exhaustive
 search on a single node (equivalent to parallel implementation) to
-distributed exhaustive search on multiple nodes. The performance tests
-were executed on the Intel(R) DevCloud cluster nodes with CPU device
-type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor, and the Linux
-time utility was used to report the results.
+distributed exhaustive search on multiple nodes.
 
 ![ExhaustiveGPU](ExhaustiveOnGPU.svg "Fig 2")
 
 The figure shows the performance comparison of distributed exhaustive
 search on a single node (equivalent to parallel implementation) to
-distributed exhaustive search on multiple nodes. The performance tests
-were executed on the Intel(R) DevCloud cluster nodes with gpu device
-type: Intel(R) UHD Graphics P630, and the Linux time utility was used to
-report the results.
+distributed exhaustive search on multiple nodes.
 
 ### Simulated annealing search benchmarks
 
@@ -338,7 +340,10 @@ executed with the following paramters:
 3) Number of iterations: 100
 4) Number of trajectories : 200 per node
 
-The performance tests were executed on the Intel(R) DevCloud cluster nodes with with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and gpu device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to report the results.
+The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
+with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and gpu 
+device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
+report the results.
 
 
 ![AnnealingEnergyOnGPU](AnnealingEnergyOnGPU.svg "Fig 3") 
@@ -353,7 +358,8 @@ decreasing characteristic of the energy in the function of number of nodes.
 ![AnnealingTimeOnGPU](AnnealingTimeOnGPU.svg "Fig 5")
 ![AnnealingTimeOnCPU](AnnealingTimeOnCPU.svg "Fig 6")
 
-The figure presents time-to-solution as function of number of nodes employed in the execution of the simulated annealing algorithm. 
+The figure presents time-to-solution as function of number of nodes employed in 
+the execution of the simulated annealing algorithm. 
 
 
 ## 5. Description of running oneSolver 2.0 on a cluster
@@ -365,28 +371,42 @@ supporting scripts](oneSolver/utils/devcloud)*.
 ## 6. Additional performance tests
 
 ### Performance comparison of Distributed Exhaustive Search: GPU VS CPU
-The performance tests were executed on the Intel(R) DevCloud cluster nodes with with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor and gpu device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to report the results.
+The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
+with CPU device type: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz processor and gpu
+device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
+report the results.
 
 ![ExhaustiveGPUvsCPU](ExhaustiveGPUvsCPU.svg "Fig 7")
 
 The figure shows the performance comparison of exhaustive search
 algorithm on two devices: GPU and CPU of Intel(R) DevCloud cluster for
-Chimera graphs of size L = {25,26,27,28,29} vertices on cluster nodes ranging from two to sixteen. 
+Chimera graphs of size L = {25,26,27,28,29} vertices on cluster nodes ranging 
+from two to sixteen. 
 
 ### Performance comparison of Parallel and distributed simulated annealing on CPU vs GPU
 
-The performance tests were executed on the Intel(R) DevCloud cluster nodes with with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and gpu device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to report the results.
+The performance tests were executed on the Intel(R) DevCloud cluster nodes with 
+with CPU device type: Intel(R) Xeon(R) E-2146G CPU @ 3.50GHz processor and gpu 
+device type: Intel(R) UHD Graphics P630, and the Linux time utility was used to 
+report the results.
 
 ![AnnealingTimeOnGPUvsCPU](AnnealingTimeOnGPUvsCPU.svg "Fig 8")
  
 ![AnnealingEnergyOnGPUvsCPU](AnnealingEnergyOnGPUvsCPU.svg "Fig 9")
 
-The figure shows the performance comparison of annealing algorithm on two devices: GPU and CPU of Intel(R) DevCloud cluster for Chimera graphs of size L = 512 vertices on cluster nodes ranging from two to sixteen. 
+The figure shows the performance comparison of annealing algorithm on two devices:
+GPU and CPU of Intel(R) DevCloud cluster for Chimera graphs of size L = 512 
+vertices on cluster nodes ranging from two to sixteen. 
 
 
 # References
-1) Gary Kochenberger, Jin Kao Hao, Fred Glover, Mark Lewis, Zhipeng Lü, Haibo Wang, and Yang Wang. The unconstrained binary quadratic programming problem: A survey. Journal of Combinatorial Optimization, 28(1):58–81, 2014.
-2) Fred Glover, Gary Kochenberger, and Yu Du. Quantum Bridge Analytics I: a tutorial on formulating and using QUBO models. arXiv:1811.11538, 2018.
+1) Gary Kochenberger, Jin Kao Hao, Fred Glover, Mark Lewis, Zhipeng Lü, Haibo Wang,
+and Yang Wang. The unconstrained binary quadratic programming problem: A survey.
+Journal of Combinatorial Optimization, 28(1):58–81, 2014.
+2) Fred Glover, Gary Kochenberger, and Yu Du. Quantum Bridge Analytics I: a tutorial
+on formulating and using QUBO models. arXiv:1811.11538, 2018.
 3) Rodney J. Baxter. Exactly Solved Model in Statistica. Academic Press, 1982.
-4) Jakub Czartowski, B.G.Y.F.K.Z., Konrad Szymanski Ground state energy: Can it really be reached with quantum annealers?. Preprint at arXiv:11812.09251 (2018).
-5) S. Kirkpatrick, C. D. Gelatt, Jr., M. P. Vecchi Optimizationby Simulated Annealing. Science 220, 4598, 1983.
+4) Jakub Czartowski, B.G.Y.F.K.Z., Konrad Szymanski Ground state energy: Can it 
+really be reached with quantum annealers?. Preprint at arXiv:11812.09251 (2018).
+5) S. Kirkpatrick, C. D. Gelatt, Jr., M. P. Vecchi Optimizationby Simulated Annealing.
+Science 220, 4598, 1983.
